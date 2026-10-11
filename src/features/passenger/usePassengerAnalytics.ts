@@ -5,6 +5,10 @@ import {
   type PassengerAnalyticsFlushTrigger,
 } from "./analytics-retry";
 import {
+  persistPassengerAnalyticsQueue,
+  readPassengerAnalyticsQueue,
+} from "./analytics-queue-storage";
+import {
   PASSENGER_ANALYTICS_ENGAGEMENT_QUEUE_LIMIT,
   PASSENGER_ANALYTICS_QUEUE_LIMIT,
   PASSENGER_ANALYTICS_QUEUE_MAX_AGE_MS,
@@ -34,52 +38,36 @@ function createId() {
 }
 
 function readQueue() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]") as PassengerAnalyticsEvent[];
-    const cutoff = Date.now() - PASSENGER_ANALYTICS_QUEUE_MAX_AGE_MS;
-    return Array.isArray(stored)
-      ? stored
-          .filter((event) => Date.parse(event.occurredAt) >= cutoff)
-          .slice(-PASSENGER_ANALYTICS_QUEUE_LIMIT)
-      : [];
-  } catch {
-    return [];
-  }
+  return readPassengerAnalyticsQueue<PassengerAnalyticsEvent>(localStorage, QUEUE_KEY, {
+    maxAgeMs: PASSENGER_ANALYTICS_QUEUE_MAX_AGE_MS,
+    limit: PASSENGER_ANALYTICS_QUEUE_LIMIT,
+    getTimestamp: (event) => event.occurredAt,
+  });
 }
 
 function persistQueue(queue: PassengerAnalyticsEvent[]) {
-  try {
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue.slice(-PASSENGER_ANALYTICS_QUEUE_LIMIT)));
-  } catch {
-    // Analytics are optional and must not break the in-vehicle console.
-  }
+  persistPassengerAnalyticsQueue(localStorage, QUEUE_KEY, queue, PASSENGER_ANALYTICS_QUEUE_LIMIT);
 }
 
 function readEngagementQueue() {
-  try {
-    const stored = JSON.parse(
-      localStorage.getItem(ENGAGEMENT_QUEUE_KEY) || "[]",
-    ) as PassengerAnalyticsEngagement[];
-    const cutoff = Date.now() - PASSENGER_ANALYTICS_QUEUE_MAX_AGE_MS;
-    return Array.isArray(stored)
-      ? stored
-          .filter((engagement) => Date.parse(engagement.startedAt) >= cutoff)
-          .slice(-PASSENGER_ANALYTICS_ENGAGEMENT_QUEUE_LIMIT)
-      : [];
-  } catch {
-    return [];
-  }
+  return readPassengerAnalyticsQueue<PassengerAnalyticsEngagement>(
+    localStorage,
+    ENGAGEMENT_QUEUE_KEY,
+    {
+      maxAgeMs: PASSENGER_ANALYTICS_QUEUE_MAX_AGE_MS,
+      limit: PASSENGER_ANALYTICS_ENGAGEMENT_QUEUE_LIMIT,
+      getTimestamp: (engagement) => engagement.startedAt,
+    },
+  );
 }
 
 function persistEngagementQueue(queue: PassengerAnalyticsEngagement[]) {
-  try {
-    localStorage.setItem(
-      ENGAGEMENT_QUEUE_KEY,
-      JSON.stringify(queue.slice(-PASSENGER_ANALYTICS_ENGAGEMENT_QUEUE_LIMIT)),
-    );
-  } catch {
-    // The console must remain usable when browser storage is restricted.
-  }
+  persistPassengerAnalyticsQueue(
+    localStorage,
+    ENGAGEMENT_QUEUE_KEY,
+    queue,
+    PASSENGER_ANALYTICS_ENGAGEMENT_QUEUE_LIMIT,
+  );
 }
 
 function getDeviceInstallationId() {

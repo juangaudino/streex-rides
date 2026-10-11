@@ -88,6 +88,7 @@ import { useAroundYouEngine } from "./around-you/useAroundYouEngine";
 import { usePassengerLocation } from "./around-you/usePassengerLocation";
 import { usePassengerAnalytics } from "./usePassengerAnalytics";
 import {
+  createSpotifyPostControlRefreshScheduler,
   createSingleFlight,
   shouldPollSpotifyHome,
   startSpotifyPolling,
@@ -1456,9 +1457,21 @@ function IdleSpotifyNowPlaying({
 }) {
   const [status, setStatus] = useState<SpotifyPlaybackState | null>(null);
   const [busy, setBusy] = useState(false);
+  const isMountedRef = useRef(false);
+  const lifecycleRef = useRef(0);
+  const postControlRefreshRef = useRef<ReturnType<
+    typeof createSpotifyPostControlRefreshScheduler
+  > | null>(null);
 
   useEffect(() => {
     let isMounted = true;
+    const lifecycle = ++lifecycleRef.current;
+    isMountedRef.current = true;
+    const postControlRefresh = createSpotifyPostControlRefreshScheduler({
+      setTimeout: (callback, delayMs) => window.setTimeout(callback, delayMs),
+      clearTimeout: (timer) => window.clearTimeout(timer),
+    });
+    postControlRefreshRef.current = postControlRefresh;
 
     const refresh = async () => {
       try {
@@ -1477,6 +1490,12 @@ function IdleSpotifyNowPlaying({
     });
     return () => {
       isMounted = false;
+      isMountedRef.current = false;
+      if (lifecycleRef.current === lifecycle) lifecycleRef.current += 1;
+      postControlRefresh.dispose();
+      if (postControlRefreshRef.current === postControlRefresh) {
+        postControlRefreshRef.current = null;
+      }
       stopPolling();
     };
   }, [enabled]);
@@ -1494,19 +1513,20 @@ function IdleSpotifyNowPlaying({
     ? Math.min(100, Math.max(0, (liveProgressMs / track.durationMs) * 100))
     : null;
   const control = async (command: "play" | "pause" | "next") => {
+    if (!isMountedRef.current) return;
+    const lifecycle = lifecycleRef.current;
     setBusy(true);
     try {
       await controlPersonalSpotifyPlayback({ data: { command } });
-      window.setTimeout(
-        () => {
-          void getSharedPersonalSpotifyPlayback()
-            .then(setStatus)
-            .catch(() => setStatus(null));
-        },
+      if (!isMountedRef.current || lifecycleRef.current !== lifecycle) return;
+      postControlRefreshRef.current?.schedule(
         command === "next" ? 800 : 300,
+        getSharedPersonalSpotifyPlayback,
+        setStatus,
+        () => setStatus(null),
       );
     } finally {
-      setBusy(false);
+      if (isMountedRef.current && lifecycleRef.current === lifecycle) setBusy(false);
     }
   };
   const className = `passenger-idle-music grid w-full max-w-4xl items-center gap-7${

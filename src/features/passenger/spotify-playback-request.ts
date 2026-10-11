@@ -71,3 +71,42 @@ export function startSpotifyPolling({
     if (refreshOnlyWhenVisible) host.removeEventListener("visibilitychange", refreshOnVisible);
   };
 }
+
+export function createSpotifyPostControlRefreshScheduler({
+  setTimeout: setTimer,
+  clearTimeout: clearTimer,
+}: {
+  setTimeout: (callback: () => void, delayMs: number) => number;
+  clearTimeout: (timer: number) => void;
+}) {
+  let active = true;
+  let timer: number | null = null;
+
+  return {
+    schedule<T>(
+      delayMs: number,
+      refresh: () => Promise<T>,
+      onSuccess: (value: T) => void,
+      onError: () => void,
+    ) {
+      if (!active) return;
+      if (timer !== null) clearTimer(timer);
+      timer = setTimer(() => {
+        timer = null;
+        if (!active) return;
+        void refresh()
+          .then((value) => {
+            if (active) onSuccess(value);
+          })
+          .catch(() => {
+            if (active) onError();
+          });
+      }, delayMs);
+    },
+    dispose() {
+      active = false;
+      if (timer !== null) clearTimer(timer);
+      timer = null;
+    },
+  };
+}
