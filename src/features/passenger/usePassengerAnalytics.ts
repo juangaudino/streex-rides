@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
 import { ingestPassengerAnalytics } from "@/lib/passenger-analytics.functions";
 import {
+  createPassengerAnalyticsRetryController,
+  type PassengerAnalyticsFlushTrigger,
+} from "./analytics-retry";
+import {
   PASSENGER_ANALYTICS_ENGAGEMENT_QUEUE_LIMIT,
   PASSENGER_ANALYTICS_QUEUE_LIMIT,
   PASSENGER_ANALYTICS_QUEUE_MAX_AGE_MS,
@@ -110,7 +114,9 @@ export function usePassengerAnalytics(screen: PassengerAnalyticsScreen) {
   const engagementRef = useRef<PassengerAnalyticsEngagement | null>(null);
   const queueRef = useRef<PassengerAnalyticsEvent[]>([]);
   const engagementQueueRef = useRef<PassengerAnalyticsEngagement[]>([]);
-  const flushingRef = useRef(false);
+  const retryControllerRef = useRef<ReturnType<
+    typeof createPassengerAnalyticsRetryController
+  > | null>(null);
   const activeSinceRef = useRef<number | null>(null);
   const engagementActiveSinceRef = useRef<number | null>(null);
   const firstInteractionRef = useRef(false);
@@ -146,42 +152,47 @@ export function usePassengerAnalytics(screen: PassengerAnalyticsScreen) {
     persistEngagementQueue(engagementQueueRef.current);
   }, []);
 
-  const flush = useCallback(async () => {
-    if (flushingRef.current || !sessionRef.current || !navigator.onLine) return;
-    flushingRef.current = true;
-    refreshActiveDuration();
-    refreshEngagementDuration();
-    const batch = queueRef.current.slice(0, 25);
-    const activeEngagement = engagementRef.current;
-    const engagements = uniqueEngagements([
-      ...engagementQueueRef.current,
-      ...(activeEngagement ? [{ ...activeEngagement }] : []),
-    ]);
-    try {
-      await ingestPassengerAnalytics({
-        data: { session: sessionRef.current, engagements, events: batch },
-      });
-      if (batch.length) {
-        const delivered = new Set(batch.map((event) => event.id));
-        queueRef.current = queueRef.current.filter((event) => !delivered.has(event.id));
-        persistQueue(queueRef.current);
-      }
-      if (engagements.length) {
-        const delivered = new Set(engagements.map((engagement) => engagement.id));
-        engagementQueueRef.current = engagementQueueRef.current.filter(
-          (engagement) => !delivered.has(engagement.id),
-        );
-        persistEngagementQueue(engagementQueueRef.current);
-      }
-    } catch {
-      if (activeEngagement) queueEngagement(activeEngagement);
-      // Keep the bounded queue for a later online retry. Passenger UI stays unaffected.
-    } finally {
-      flushingRef.current = false;
-      if ((queueRef.current.length || engagementQueueRef.current.length) && navigator.onLine)
-        void flush();
-    }
-  }, [queueEngagement, refreshActiveDuration, refreshEngagementDuration]);
+  const flush = useCallback(
+    (trigger: PassengerAnalyticsFlushTrigger = "event") => {
+      void retryControllerRef.current?.run(
+        async () => {
+          if (!sessionRef.current) return;
+          refreshActiveDuration();
+          refreshEngagementDuration();
+          const batch = queueRef.current.slice(0, 25);
+          const activeEngagement = engagementRef.current;
+          const engagements = uniqueEngagements([
+            ...engagementQueueRef.current,
+            ...(activeEngagement ? [{ ...activeEngagement }] : []),
+          ]);
+          try {
+            await ingestPassengerAnalytics({
+              data: { session: sessionRef.current, engagements, events: batch },
+            });
+            if (batch.length) {
+              const delivered = new Set(batch.map((event) => event.id));
+              queueRef.current = queueRef.current.filter((event) => !delivered.has(event.id));
+              persistQueue(queueRef.current);
+            }
+            if (engagements.length) {
+              const delivered = new Set(engagements.map((engagement) => engagement.id));
+              engagementQueueRef.current = engagementQueueRef.current.filter(
+                (engagement) => !delivered.has(engagement.id),
+              );
+              persistEngagementQueue(engagementQueueRef.current);
+            }
+          } catch (error) {
+            if (activeEngagement) queueEngagement(activeEngagement);
+            // Preserve event IDs and queued data; the retry controller owns retry timing.
+            throw error;
+          }
+        },
+        () => navigator.onLine,
+        trigger,
+      );
+    },
+    [queueEngagement, refreshActiveDuration, refreshEngagementDuration],
+  );
 
   const track = useCallback(
     ({
@@ -287,6 +298,8 @@ export function usePassengerAnalytics(screen: PassengerAnalyticsScreen) {
   }, [screen, track]);
 
   useEffect(() => {
+    const retryController = createPassengerAnalyticsRetryController();
+    retryControllerRef.current = retryController;
     const now = new Date().toISOString();
     sessionRef.current = {
       id: createId(),
@@ -314,21 +327,21 @@ export function usePassengerAnalytics(screen: PassengerAnalyticsScreen) {
         refreshEngagementDuration();
         activeSinceRef.current = null;
         engagementActiveSinceRef.current = null;
-        void flush();
+        flush("heartbeat");
       } else if (activeSinceRef.current === null) {
         activeSinceRef.current = Date.now();
         if (engagementRef.current && !engagementRef.current.endedAt) {
           engagementActiveSinceRef.current = Date.now();
         }
-        void flush();
+        flush("heartbeat");
       }
     };
-    const syncOnline = () => void flush();
+    const syncOnline = () => flush("online");
     const syncPageHide = () => {
       endEngagement("pagehide");
-      void flush();
+      flush("heartbeat");
     };
-    const interval = window.setInterval(() => void flush(), SESSION_SYNC_MS);
+    const interval = window.setInterval(() => flush("heartbeat"), SESSION_SYNC_MS);
 
     window.addEventListener("pointerdown", markInteraction, { passive: true });
     window.addEventListener("keydown", markInteraction);
@@ -338,13 +351,15 @@ export function usePassengerAnalytics(screen: PassengerAnalyticsScreen) {
     return () => {
       refreshActiveDuration();
       refreshEngagementDuration();
-      void flush();
+      flush("heartbeat");
       window.clearInterval(interval);
       window.removeEventListener("pointerdown", markInteraction);
       window.removeEventListener("keydown", markInteraction);
       window.removeEventListener("online", syncOnline);
       window.removeEventListener("pagehide", syncPageHide);
       document.removeEventListener("visibilitychange", syncVisibility);
+      retryController.dispose();
+      if (retryControllerRef.current === retryController) retryControllerRef.current = null;
     };
   }, [
     beginEngagement,

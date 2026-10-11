@@ -87,6 +87,11 @@ import type { AroundYouLanguage } from "./around-you/around-you-types";
 import { useAroundYouEngine } from "./around-you/useAroundYouEngine";
 import { usePassengerLocation } from "./around-you/usePassengerLocation";
 import { usePassengerAnalytics } from "./usePassengerAnalytics";
+import {
+  createSingleFlight,
+  shouldPollSpotifyHome,
+  startSpotifyPolling,
+} from "./spotify-playback-request";
 import { WeatherAtmosphere, type AtmosphereVariant } from "./WeatherAtmosphere";
 import type { PassengerAnalyticsScreen } from "@/lib/passenger-analytics";
 import utahTriviaAtlas from "@/assets/passenger-games/utah-trivia-atlas.jpg";
@@ -823,6 +828,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
               config={config}
               aroundYou={aroundYou}
               language={language}
+              spotifyHomePollingEnabled={shouldPollSpotifyHome(view, idleReset.promptOpen)}
               onNavigate={navigateTo}
               onOpenGame={openGame}
               quickGame={quickGame}
@@ -1452,25 +1458,26 @@ function IdleSpotifyNowPlaying({
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!enabled) return;
     let isMounted = true;
 
     const refresh = async () => {
       try {
-        const next = await getPersonalSpotifyPlayback({ data: {} });
+        const next = await getSharedPersonalSpotifyPlayback();
         if (isMounted) setStatus(next);
       } catch {
         if (isMounted) setStatus(null);
       }
     };
 
-    void refresh();
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") void refresh();
-    }, 10_000);
+    const stopPolling = startSpotifyPolling({
+      refresh,
+      intervalMs: 10_000,
+      enabled,
+      refreshOnlyWhenVisible: true,
+    });
     return () => {
       isMounted = false;
-      window.clearInterval(interval);
+      stopPolling();
     };
   }, [enabled]);
 
@@ -1492,7 +1499,7 @@ function IdleSpotifyNowPlaying({
       await controlPersonalSpotifyPlayback({ data: { command } });
       window.setTimeout(
         () => {
-          void getPersonalSpotifyPlayback({ data: {} })
+          void getSharedPersonalSpotifyPlayback()
             .then(setStatus)
             .catch(() => setStatus(null));
         },
@@ -1722,6 +1729,7 @@ function HomeView({
   aroundYou,
   config,
   language,
+  spotifyHomePollingEnabled,
   onNavigate,
   onOpenGame,
   quickGame,
@@ -1738,6 +1746,7 @@ function HomeView({
   aroundYou: import("./around-you/around-you-types").AroundYouEngineState;
   config: AppConfig;
   language: Language;
+  spotifyHomePollingEnabled: boolean;
   onNavigate: (view: View) => void;
   onOpenGame: (game: PassengerGame) => void;
   quickGame: PassengerGame;
@@ -1900,7 +1909,11 @@ function HomeView({
       <div className="passenger-home-music">
         {config.passengerConsole.music.mode === "provider" &&
         config.passengerConsole.music.providerName === "Spotify" ? (
-          <PersonalSpotifyHomeCard onNavigate={onNavigate} t={t} />
+          <PersonalSpotifyHomeCard
+            onNavigate={onNavigate}
+            pollingEnabled={spotifyHomePollingEnabled}
+            t={t}
+          />
         ) : (
           <button
             type="button"
@@ -2439,6 +2452,10 @@ type SpotifyPlaybackState =
       };
     };
 
+const getSharedPersonalSpotifyPlayback = createSingleFlight(() =>
+  getPersonalSpotifyPlayback({ data: {} }),
+);
+
 type SpotifySearchTrack = {
   id: string;
   uri: string;
@@ -2745,9 +2762,11 @@ function useInterpolatedSpotifyProgress(
 
 function PersonalSpotifyHomeCard({
   onNavigate,
+  pollingEnabled,
   t,
 }: {
   onNavigate: (view: View) => void;
+  pollingEnabled: boolean;
   t: (typeof copy)[Language];
 }) {
   const [status, setStatus] = useState<SpotifyPlaybackState | null>(null);
@@ -2757,7 +2776,7 @@ function PersonalSpotifyHomeCard({
 
     const refresh = async () => {
       try {
-        const next = await getPersonalSpotifyPlayback({ data: {} });
+        const next = await getSharedPersonalSpotifyPlayback();
         if (isMounted) setStatus(next);
       } catch {
         // The detailed recovery state stays in Music; Home remains a safe entry point.
@@ -2765,13 +2784,16 @@ function PersonalSpotifyHomeCard({
       }
     };
 
-    void refresh();
-    const interval = window.setInterval(() => void refresh(), 30_000);
+    const stopPolling = startSpotifyPolling({
+      refresh,
+      intervalMs: 30_000,
+      enabled: pollingEnabled,
+    });
     return () => {
       isMounted = false;
-      window.clearInterval(interval);
+      stopPolling();
     };
-  }, []);
+  }, [pollingEnabled]);
 
   const playback = status?.state === "ready" ? status.playback : null;
   const track = playback?.track ?? null;
@@ -2851,7 +2873,7 @@ function PersonalSpotifyMusicView({
     async (silent = false) => {
       if (!silent) setError(null);
       try {
-        const next = await getPersonalSpotifyPlayback({ data: {} });
+        const next = await getSharedPersonalSpotifyPlayback();
         setStatus(next);
         return next;
       } catch (requestError) {
@@ -2865,19 +2887,11 @@ function PersonalSpotifyMusicView({
   );
 
   useEffect(() => {
-    void refresh();
-    const refreshOnVisible = () => {
-      if (document.visibilityState === "visible") void refresh(true);
-    };
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") void refresh(true);
-    }, 5_000);
-    document.addEventListener("visibilitychange", refreshOnVisible);
-
-    return () => {
-      window.clearInterval(interval);
-      document.removeEventListener("visibilitychange", refreshOnVisible);
-    };
+    return startSpotifyPolling({
+      refresh: () => refresh(true),
+      intervalMs: 5_000,
+      refreshOnlyWhenVisible: true,
+    });
   }, [refresh]);
 
   useEffect(() => {
