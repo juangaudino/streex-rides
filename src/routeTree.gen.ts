@@ -9,55 +9,45 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SlcAirportPrivateRidesRouteImport } from './routes/slc-airport-private-rides'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as RunnerLabRouteImport } from './routes/runner-lab'
-import { Route as RequestARideRouteImport } from './routes/request-a-ride'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PassengerRouteImport } from './routes/passenger'
-import { Route as ParkCityPrivateTransportationRouteImport } from './routes/park-city-private-transportation'
-import { Route as LasVegasPrivateRidesRouteImport } from './routes/las-vegas-private-rides'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as TenantSlugRouteImport } from './routes/$tenantSlug'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SpotifySetupRouteImport } from './routes/spotify.setup'
-import { Route as SpotifyCallbackRouteImport } from './routes/spotify.callback'
-import { Route as GoogleCalendarCallbackRouteImport } from './routes/google-calendar.callback'
-import { Route as BookingDeclineRouteImport } from './routes/booking.decline'
-import { Route as BookingAcceptRouteImport } from './routes/booking.accept'
-import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
-import { Route as AdminPricingRouteImport } from './routes/admin.pricing'
+import { Route as TenantSlugRouteImport } from './routes/$tenantSlug'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as LasVegasPrivateRidesRouteImport } from './routes/las-vegas-private-rides'
+import { Route as ParkCityPrivateTransportationRouteImport } from './routes/park-city-private-transportation'
+import { Route as PassengerRouteImport } from './routes/passenger'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RequestARideRouteImport } from './routes/request-a-ride'
+import { Route as RunnerLabRouteImport } from './routes/runner-lab'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SlcAirportPrivateRidesRouteImport } from './routes/slc-airport-private-rides'
 import { Route as AdminBookingsRouteImport } from './routes/admin.bookings'
+import { Route as AdminPricingRouteImport } from './routes/admin.pricing'
+import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
+import { Route as BookingAcceptRouteImport } from './routes/booking.accept'
+import { Route as BookingDeclineRouteImport } from './routes/booking.decline'
+import { Route as GoogleCalendarCallbackRouteImport } from './routes/google-calendar.callback'
+import { Route as SpotifyCallbackRouteImport } from './routes/spotify.callback'
+import { Route as SpotifySetupRouteImport } from './routes/spotify.setup'
 import { Route as ApiResendInboundRouteImport } from './routes/api.resend.inbound'
 
-const SlcAirportPrivateRidesRoute = SlcAirportPrivateRidesRouteImport.update({
-  id: '/slc-airport-private-rides',
-  path: '/slc-airport-private-rides',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
+const TenantSlugRoute = TenantSlugRouteImport.update({
+  id: '/$tenantSlug',
+  path: '/$tenantSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RunnerLabRoute = RunnerLabRouteImport.update({
-  id: '/runner-lab',
-  path: '/runner-lab',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RequestARideRoute = RequestARideRouteImport.update({
-  id: '/request-a-ride',
-  path: '/request-a-ride',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PassengerRoute = PassengerRouteImport.update({
-  id: '/passenger',
-  path: '/passenger',
+const LasVegasPrivateRidesRoute = LasVegasPrivateRidesRouteImport.update({
+  id: '/las-vegas-private-rides',
+  path: '/las-vegas-private-rides',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParkCityPrivateTransportationRoute =
@@ -66,54 +56,39 @@ const ParkCityPrivateTransportationRoute =
     path: '/park-city-private-transportation',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LasVegasPrivateRidesRoute = LasVegasPrivateRidesRouteImport.update({
-  id: '/las-vegas-private-rides',
-  path: '/las-vegas-private-rides',
+const PassengerRoute = PassengerRouteImport.update({
+  id: '/passenger',
+  path: '/passenger',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TenantSlugRoute = TenantSlugRouteImport.update({
-  id: '/$tenantSlug',
-  path: '/$tenantSlug',
+const RequestARideRoute = RequestARideRouteImport.update({
+  id: '/request-a-ride',
+  path: '/request-a-ride',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const RunnerLabRoute = RunnerLabRouteImport.update({
+  id: '/runner-lab',
+  path: '/runner-lab',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SpotifySetupRoute = SpotifySetupRouteImport.update({
-  id: '/spotify/setup',
-  path: '/spotify/setup',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SpotifyCallbackRoute = SpotifyCallbackRouteImport.update({
-  id: '/spotify/callback',
-  path: '/spotify/callback',
+const SlcAirportPrivateRidesRoute = SlcAirportPrivateRidesRouteImport.update({
+  id: '/slc-airport-private-rides',
+  path: '/slc-airport-private-rides',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GoogleCalendarCallbackRoute = GoogleCalendarCallbackRouteImport.update({
-  id: '/google-calendar/callback',
-  path: '/google-calendar/callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BookingDeclineRoute = BookingDeclineRouteImport.update({
-  id: '/booking/decline',
-  path: '/booking/decline',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BookingAcceptRoute = BookingAcceptRouteImport.update({
-  id: '/booking/accept',
-  path: '/booking/accept',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminReviewsRoute = AdminReviewsRouteImport.update({
-  id: '/reviews',
-  path: '/reviews',
+const AdminBookingsRoute = AdminBookingsRouteImport.update({
+  id: '/bookings',
+  path: '/bookings',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminPricingRoute = AdminPricingRouteImport.update({
@@ -121,10 +96,35 @@ const AdminPricingRoute = AdminPricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminBookingsRoute = AdminBookingsRouteImport.update({
-  id: '/bookings',
-  path: '/bookings',
+const AdminReviewsRoute = AdminReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
   getParentRoute: () => AdminRoute,
+} as any)
+const BookingAcceptRoute = BookingAcceptRouteImport.update({
+  id: '/booking/accept',
+  path: '/booking/accept',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingDeclineRoute = BookingDeclineRouteImport.update({
+  id: '/booking/decline',
+  path: '/booking/decline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoogleCalendarCallbackRoute = GoogleCalendarCallbackRouteImport.update({
+  id: '/google-calendar/callback',
+  path: '/google-calendar/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpotifyCallbackRoute = SpotifyCallbackRouteImport.update({
+  id: '/spotify/callback',
+  path: '/spotify/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpotifySetupRoute = SpotifySetupRouteImport.update({
+  id: '/spotify/setup',
+  path: '/spotify/setup',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiResendInboundRoute = ApiResendInboundRouteImport.update({
   id: '/api/resend/inbound',
@@ -290,67 +290,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/slc-airport-private-rides': {
-      id: '/slc-airport-private-rides'
-      path: '/slc-airport-private-rides'
-      fullPath: '/slc-airport-private-rides'
-      preLoaderRoute: typeof SlcAirportPrivateRidesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/runner-lab': {
-      id: '/runner-lab'
-      path: '/runner-lab'
-      fullPath: '/runner-lab'
-      preLoaderRoute: typeof RunnerLabRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/request-a-ride': {
-      id: '/request-a-ride'
-      path: '/request-a-ride'
-      fullPath: '/request-a-ride'
-      preLoaderRoute: typeof RequestARideRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/passenger': {
-      id: '/passenger'
-      path: '/passenger'
-      fullPath: '/passenger'
-      preLoaderRoute: typeof PassengerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/park-city-private-transportation': {
-      id: '/park-city-private-transportation'
-      path: '/park-city-private-transportation'
-      fullPath: '/park-city-private-transportation'
-      preLoaderRoute: typeof ParkCityPrivateTransportationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/las-vegas-private-rides': {
-      id: '/las-vegas-private-rides'
-      path: '/las-vegas-private-rides'
-      fullPath: '/las-vegas-private-rides'
-      preLoaderRoute: typeof LasVegasPrivateRidesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$tenantSlug': {
@@ -360,53 +304,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TenantSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/spotify/setup': {
-      id: '/spotify/setup'
-      path: '/spotify/setup'
-      fullPath: '/spotify/setup'
-      preLoaderRoute: typeof SpotifySetupRouteImport
+    '/las-vegas-private-rides': {
+      id: '/las-vegas-private-rides'
+      path: '/las-vegas-private-rides'
+      fullPath: '/las-vegas-private-rides'
+      preLoaderRoute: typeof LasVegasPrivateRidesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/spotify/callback': {
-      id: '/spotify/callback'
-      path: '/spotify/callback'
-      fullPath: '/spotify/callback'
-      preLoaderRoute: typeof SpotifyCallbackRouteImport
+    '/park-city-private-transportation': {
+      id: '/park-city-private-transportation'
+      path: '/park-city-private-transportation'
+      fullPath: '/park-city-private-transportation'
+      preLoaderRoute: typeof ParkCityPrivateTransportationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/google-calendar/callback': {
-      id: '/google-calendar/callback'
-      path: '/google-calendar/callback'
-      fullPath: '/google-calendar/callback'
-      preLoaderRoute: typeof GoogleCalendarCallbackRouteImport
+    '/passenger': {
+      id: '/passenger'
+      path: '/passenger'
+      fullPath: '/passenger'
+      preLoaderRoute: typeof PassengerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/booking/decline': {
-      id: '/booking/decline'
-      path: '/booking/decline'
-      fullPath: '/booking/decline'
-      preLoaderRoute: typeof BookingDeclineRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/booking/accept': {
-      id: '/booking/accept'
-      path: '/booking/accept'
-      fullPath: '/booking/accept'
-      preLoaderRoute: typeof BookingAcceptRouteImport
+    '/request-a-ride': {
+      id: '/request-a-ride'
+      path: '/request-a-ride'
+      fullPath: '/request-a-ride'
+      preLoaderRoute: typeof RequestARideRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/reviews': {
-      id: '/admin/reviews'
-      path: '/reviews'
-      fullPath: '/admin/reviews'
-      preLoaderRoute: typeof AdminReviewsRouteImport
+    '/runner-lab': {
+      id: '/runner-lab'
+      path: '/runner-lab'
+      fullPath: '/runner-lab'
+      preLoaderRoute: typeof RunnerLabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/slc-airport-private-rides': {
+      id: '/slc-airport-private-rides'
+      path: '/slc-airport-private-rides'
+      fullPath: '/slc-airport-private-rides'
+      preLoaderRoute: typeof SlcAirportPrivateRidesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/bookings': {
+      id: '/admin/bookings'
+      path: '/bookings'
+      fullPath: '/admin/bookings'
+      preLoaderRoute: typeof AdminBookingsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/pricing': {
@@ -416,12 +381,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPricingRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/bookings': {
-      id: '/admin/bookings'
-      path: '/bookings'
-      fullPath: '/admin/bookings'
-      preLoaderRoute: typeof AdminBookingsRouteImport
+    '/admin/reviews': {
+      id: '/admin/reviews'
+      path: '/reviews'
+      fullPath: '/admin/reviews'
+      preLoaderRoute: typeof AdminReviewsRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/booking/accept': {
+      id: '/booking/accept'
+      path: '/booking/accept'
+      fullPath: '/booking/accept'
+      preLoaderRoute: typeof BookingAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/booking/decline': {
+      id: '/booking/decline'
+      path: '/booking/decline'
+      fullPath: '/booking/decline'
+      preLoaderRoute: typeof BookingDeclineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/google-calendar/callback': {
+      id: '/google-calendar/callback'
+      path: '/google-calendar/callback'
+      fullPath: '/google-calendar/callback'
+      preLoaderRoute: typeof GoogleCalendarCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/spotify/callback': {
+      id: '/spotify/callback'
+      path: '/spotify/callback'
+      fullPath: '/spotify/callback'
+      preLoaderRoute: typeof SpotifyCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/spotify/setup': {
+      id: '/spotify/setup'
+      path: '/spotify/setup'
+      fullPath: '/spotify/setup'
+      preLoaderRoute: typeof SpotifySetupRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/resend/inbound': {
       id: '/api/resend/inbound'
