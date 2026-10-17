@@ -24,8 +24,10 @@ type TokenResponse = {
 type SpotifyPlaybackResponse = {
   device?: { name?: string };
   is_playing?: boolean;
+  repeat_state?: "off" | "context" | "track";
   progress_ms?: number | null;
   item?: {
+    uri?: string;
     name?: string;
     duration_ms?: number;
     album?: { name?: string; images?: Array<{ url?: string }> };
@@ -56,7 +58,9 @@ type SpotifyOEmbedResponse = {
 export type PersonalSpotifyPlayback = {
   hasActiveDevice: boolean;
   isPlaying: boolean;
+  repeatMode: "off" | "context" | "track" | null;
   track: {
+    uri: string | null;
     title: string;
     artist: string;
     album: string | null;
@@ -192,7 +196,7 @@ export async function getSpotifyPlayback(accessToken: string): Promise<PersonalS
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (response.status === 204) {
-    return { hasActiveDevice: false, isPlaying: false, track: null };
+    return { hasActiveDevice: false, isPlaying: false, repeatMode: null, track: null };
   }
 
   const result = (await response.json()) as SpotifyPlaybackResponse;
@@ -202,8 +206,10 @@ export async function getSpotifyPlayback(accessToken: string): Promise<PersonalS
   return {
     hasActiveDevice: Boolean(result.device?.name),
     isPlaying: Boolean(result.is_playing),
+    repeatMode: result.repeat_state ?? null,
     track: item?.name
       ? {
+          uri: item.uri ?? null,
           title: item.name,
           artist:
             (item.artists ?? [])
@@ -216,6 +222,19 @@ export async function getSpotifyPlayback(accessToken: string): Promise<PersonalS
         }
       : null,
   };
+}
+
+export async function setSpotifyRepeatMode(accessToken: string, mode: "off" | "context" | "track") {
+  const url = new URL(`${SPOTIFY_API}/me/player/repeat`);
+  url.searchParams.set("state", mode);
+  const response = await spotifyFetch(url.toString(), {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (response.ok || response.status === 204) return;
+
+  const result = (await response.json().catch(() => ({}))) as SpotifyPlaybackResponse;
+  throw new Error(result.error?.message || "Spotify could not update repeat mode.");
 }
 
 export async function controlSpotifyPlayback(
@@ -295,7 +314,6 @@ export async function getSpotifyPlaylistArtwork(
     }),
   );
 }
-
 
 export async function playSpotifyTrack(accessToken: string, uri: string) {
   const response = await spotifyFetch(`${SPOTIFY_API}/me/player/play`, {

@@ -21,6 +21,7 @@ import {
   playSpotifyTrack,
   refreshSpotifyAccessToken,
   searchSpotifyTracks,
+  setSpotifyRepeatMode,
 } from "./spotify.server";
 
 const CONNECTION_ID = "spotify-personal-primary";
@@ -31,6 +32,7 @@ const CallbackSchema = z.object({
   state: z.string().min(1).max(4096),
 });
 const ControlSchema = z.object({ command: z.enum(["play", "pause", "next"]) });
+const RepeatModeSchema = z.object({ mode: z.enum(["off", "context", "track"]) });
 const SearchSchema = z.object({
   query: z.string().trim().min(2).max(100),
   limit: z.number().int().min(1).max(10),
@@ -136,6 +138,15 @@ export const controlPersonalSpotifyPlayback = createServerFn({ method: "POST" })
     assertSpotifyPersonalIntegrationEnabled();
     assertPassengerConsoleSession();
     await controlSpotifyPlayback(await getAccessToken(), data.command);
+    return { ok: true };
+  });
+
+export const setPersonalSpotifyRepeatMode = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => RepeatModeSchema.parse(input))
+  .handler(async ({ data }) => {
+    assertSpotifyPersonalIntegrationEnabled();
+    assertPassengerConsoleSession();
+    await setSpotifyRepeatMode(await getAccessToken(), data.mode);
     return { ok: true };
   });
 

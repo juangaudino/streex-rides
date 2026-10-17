@@ -18,8 +18,17 @@ import {
   controlSpotifyPlayback,
   getSpotifyPlayback,
   refreshSpotifyAccessToken,
+  setSpotifyRepeatMode,
 } from "../src/lib/spotify.server.ts";
 import { encryptSpotifyToken } from "../src/lib/spotify-crypto.server.ts";
+import {
+  createPassengerRepeatSession,
+  createPassengerRepeatRetryGate,
+  decidePassengerRepeatAction,
+  isSamePassengerRepeatSession,
+  readPassengerRepeatSession,
+  writePassengerRepeatSession,
+} from "../src/features/passenger/spotify-passenger-repeat.ts";
 
 function createFakeTimers() {
   let nextId = 0;
@@ -389,8 +398,10 @@ describe("Passenger CPU optimization safeguards", () => {
         JSON.stringify({
           device: { name: "mock vehicle audio" },
           is_playing: true,
+          repeat_state: "context",
           progress_ms: 2_000,
           item: {
+            uri: "spotify:track:1234567890123456789012",
             name: "Mock Recovery Track",
             duration_ms: 180_000,
             artists: [{ name: "Mock Artist" }],
@@ -410,13 +421,27 @@ describe("Passenger CPU optimization safeguards", () => {
       await expect(getSpotifyPlayback("mock-access-token")).resolves.toMatchObject({
         hasActiveDevice: true,
         isPlaying: true,
-        track: { title: "Mock Recovery Track", artist: "Mock Artist", durationMs: 180_000 },
+        repeatMode: "context",
+        track: {
+          uri: "spotify:track:1234567890123456789012",
+          title: "Mock Recovery Track",
+          artist: "Mock Artist",
+          durationMs: 180_000,
+        },
       });
       expect(calls).toHaveLength(3);
       expect(calls.every((url) => url.includes("spotify.com"))).toBe(true);
 
       globalThis.fetch = async () => new Response(null, { status: 204 });
       await expect(controlSpotifyPlayback("mock-access-token", "pause")).resolves.toBeUndefined();
+      let repeatRequest;
+      globalThis.fetch = async (input, init) => {
+        repeatRequest = { url: String(input), init };
+        return new Response(null, { status: 204 });
+      };
+      await expect(setSpotifyRepeatMode("mock-access-token", "track")).resolves.toBeUndefined();
+      expect(repeatRequest.url).toBe("https://api.spotify.com/v1/me/player/repeat?state=track");
+      expect(repeatRequest.init.method).toBe("PUT");
 
       globalThis.fetch = async () =>
         new Response(JSON.stringify({ error: "invalid_grant" }), {
@@ -438,6 +463,105 @@ describe("Passenger CPU optimization safeguards", () => {
       if (previousEnv.key === undefined) delete process.env.SPOTIFY_TOKEN_ENCRYPTION_KEY;
       else process.env.SPOTIFY_TOKEN_ENCRYPTION_KEY = previousEnv.key;
     }
+  });
+
+  test("enables track repeat only after the selected track is observed, then restores the prior mode", () => {
+    const storage = new Map();
+    const storageAdapter = {
+      getItem: (key) => storage.get(key) ?? null,
+      setItem: (key, value) => storage.set(key, value),
+      removeItem: (key) => storage.delete(key),
+    };
+    const session = createPassengerRepeatSession(
+      "spotify:track:aaaaaaaaaaaaaaaaaaaaaa",
+      "spotify:track:bbbbbbbbbbbbbbbbbbbbbb",
+      "context",
+      1_000,
+    );
+
+    writePassengerRepeatSession(storageAdapter, session);
+    expect(readPassengerRepeatSession(storageAdapter)).toEqual(session);
+    expect(decidePassengerRepeatAction(session, null, null)).toEqual({ type: "wait", session });
+    expect(
+      decidePassengerRepeatAction(session, "spotify:track:bbbbbbbbbbbbbbbbbbbbbb", "context"),
+    ).toEqual({ type: "wait", session });
+
+    const enable = decidePassengerRepeatAction(
+      session,
+      "spotify:track:aaaaaaaaaaaaaaaaaaaaaa",
+      "context",
+    );
+    expect(enable).toEqual({
+      type: "enable-track",
+      session: { ...session, targetTrackConfirmed: true },
+    });
+
+    const repeatingSession = { ...enable.session, repeatApplied: true };
+    expect(
+      decidePassengerRepeatAction(
+        repeatingSession,
+        "spotify:track:aaaaaaaaaaaaaaaaaaaaaa",
+        "track",
+      ),
+    ).toEqual({ type: "wait", session: repeatingSession });
+    expect(
+      decidePassengerRepeatAction(
+        repeatingSession,
+        "spotify:track:cccccccccccccccccccccc",
+        "track",
+      ),
+    ).toEqual({ type: "restore", mode: "context" });
+  });
+
+  test("clears pending repeat without changing global mode if the driver changes tracks before passenger selection takes effect", () => {
+    const session = createPassengerRepeatSession(
+      "spotify:track:aaaaaaaaaaaaaaaaaaaaaa",
+      "spotify:track:bbbbbbbbbbbbbbbbbbbbbb",
+      "off",
+    );
+    expect(
+      decidePassengerRepeatAction(session, "spotify:track:cccccccccccccccccccccc", "off"),
+    ).toEqual({ type: "clear" });
+  });
+
+  test("waits briefly when the prior track is unknown, then clears an unconfirmed selection", () => {
+    const session = createPassengerRepeatSession(
+      "spotify:track:aaaaaaaaaaaaaaaaaaaaaa",
+      null,
+      "off",
+      1_000,
+    );
+    expect(
+      decidePassengerRepeatAction(session, "spotify:track:cccccccccccccccccccccc", "off", 10_000),
+    ).toEqual({ type: "wait", session });
+    expect(
+      decidePassengerRepeatAction(session, "spotify:track:cccccccccccccccccccccc", "off", 20_000),
+    ).toEqual({ type: "clear" });
+  });
+
+  test("scopes repeat retries to a specific track selection and ignores stale session completions", () => {
+    const enableRetryGate = createPassengerRepeatRetryGate();
+    const restoreRetryGate = createPassengerRepeatRetryGate();
+    const first = createPassengerRepeatSession(
+      "spotify:track:aaaaaaaaaaaaaaaaaaaaaa",
+      null,
+      "off",
+      1_000,
+    );
+    const second = createPassengerRepeatSession(
+      "spotify:track:bbbbbbbbbbbbbbbbbbbbbb",
+      "spotify:track:aaaaaaaaaaaaaaaaaaaaaa",
+      "off",
+      2_000,
+    );
+
+    enableRetryGate.failed(first, 60_000);
+    expect(enableRetryGate.shouldWait(first, 10_000)).toBe(true);
+    expect(isSamePassengerRepeatSession(first, second)).toBe(false);
+    expect(enableRetryGate.shouldWait(second, 10_000)).toBe(false);
+    enableRetryGate.succeeded(first);
+    expect(enableRetryGate.shouldWait(second, 10_000)).toBe(false);
+    expect(restoreRetryGate.shouldWait(first, 10_000)).toBe(false);
   });
 
   test("stops Home polling under idle overlay and resumes immediately when the screen is active", async () => {

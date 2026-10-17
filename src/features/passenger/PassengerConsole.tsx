@@ -61,6 +61,7 @@ import {
   getPersonalSpotifyPlaylistArtwork,
   playPersonalSpotifyTrack,
   searchPersonalSpotifyTracks,
+  setPersonalSpotifyRepeatMode,
 } from "@/lib/spotify.functions";
 import { listPublicReviews } from "@/lib/review.functions";
 import type { PassengerWeatherCondition, PassengerWeatherSnapshot } from "@/lib/weather";
@@ -93,6 +94,14 @@ import {
   shouldPollSpotifyHome,
   startSpotifyPolling,
 } from "./spotify-playback-request";
+import {
+  createPassengerRepeatSession,
+  createPassengerRepeatRetryGate,
+  decidePassengerRepeatAction,
+  isSamePassengerRepeatSession,
+  readPassengerRepeatSession,
+  writePassengerRepeatSession,
+} from "./spotify-passenger-repeat";
 import { WeatherAtmosphere, type AtmosphereVariant } from "./WeatherAtmosphere";
 import type { PassengerAnalyticsScreen } from "@/lib/passenger-analytics";
 import utahTriviaAtlas from "@/assets/passenger-games/utah-trivia-atlas.jpg";
@@ -2461,7 +2470,9 @@ type SpotifyPlaybackState =
       playback: {
         hasActiveDevice: boolean;
         isPlaying: boolean;
+        repeatMode: "off" | "context" | "track" | null;
         track: {
+          uri: string | null;
           title: string;
           artist: string;
           album: string | null;
@@ -2472,9 +2483,94 @@ type SpotifyPlaybackState =
       };
     };
 
-const getSharedPersonalSpotifyPlayback = createSingleFlight(() =>
-  getPersonalSpotifyPlayback({ data: {} }),
-);
+const passengerRepeatEnableRetryGate = createPassengerRepeatRetryGate();
+const passengerRepeatRestoreRetryGate = createPassengerRepeatRetryGate();
+
+function getPassengerRepeatStorage(): Storage | null {
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+
+const getSharedPersonalSpotifyPlayback = createSingleFlight(async () => {
+  const status = await getPersonalSpotifyPlayback({ data: {} });
+  if (status.state !== "ready") return status;
+
+  const storage = getPassengerRepeatStorage();
+  const session = readPassengerRepeatSession(storage ?? unavailableStorage);
+  const action = decidePassengerRepeatAction(
+    session,
+    status.playback.track?.uri ?? null,
+    status.playback.repeatMode,
+  );
+  if (action.type === "none") return status;
+  if (action.type === "wait") {
+    writePassengerRepeatSession(storage ?? unavailableStorage, action.session);
+    return status;
+  }
+  if (action.type === "clear") {
+    writePassengerRepeatSession(storage ?? unavailableStorage, null);
+    return status;
+  }
+  const actionSession = action.type === "enable-track" ? action.session : session;
+  const retryGate =
+    action.type === "enable-track"
+      ? passengerRepeatEnableRetryGate
+      : passengerRepeatRestoreRetryGate;
+  if (actionSession && retryGate.shouldWait(actionSession, Date.now())) {
+    return status;
+  }
+
+  try {
+    const mode = action.type === "enable-track" ? "track" : action.mode;
+    if (action.type === "enable-track") {
+      writePassengerRepeatSession(storage ?? unavailableStorage, action.session);
+    }
+    await setPersonalSpotifyRepeatMode({ data: { mode } });
+    if (action.type === "enable-track") {
+      const latestSession = readPassengerRepeatSession(storage ?? unavailableStorage);
+      if (isSamePassengerRepeatSession(latestSession, action.session)) {
+        writePassengerRepeatSession(storage ?? unavailableStorage, {
+          ...action.session,
+          repeatApplied: true,
+        });
+      }
+      passengerRepeatEnableRetryGate.succeeded(action.session);
+      return { ...status, playback: { ...status.playback, repeatMode: "track" as const } };
+    }
+    const latestSession = readPassengerRepeatSession(storage ?? unavailableStorage);
+    if (session && isSamePassengerRepeatSession(latestSession, session)) {
+      writePassengerRepeatSession(storage ?? unavailableStorage, null);
+    }
+    if (actionSession) retryGate.succeeded(actionSession);
+    return { ...status, playback: { ...status.playback, repeatMode: action.mode } };
+  } catch (error) {
+    // Repeat is an enhancement: playback polling remains available if Spotify rejects it.
+    const latestSession = readPassengerRepeatSession(storage ?? unavailableStorage);
+    if (action.type === "enable-track") {
+      if (isSamePassengerRepeatSession(latestSession, action.session)) {
+        writePassengerRepeatSession(storage ?? unavailableStorage, action.session);
+      }
+    }
+    if (
+      actionSession &&
+      latestSession &&
+      isSamePassengerRepeatSession(latestSession, actionSession)
+    ) {
+      retryGate.failed(actionSession, Date.now() + 60_000);
+    }
+    console.warn("[Spotify] Passenger repeat mode could not be updated.", error);
+    return status;
+  }
+});
+
+const unavailableStorage: Pick<Storage, "getItem" | "setItem" | "removeItem"> = {
+  getItem: () => null,
+  setItem: () => undefined,
+  removeItem: () => undefined,
+};
 
 type SpotifySearchTrack = {
   id: string;
@@ -3009,12 +3105,26 @@ function PersonalSpotifyMusicView({
   const playTrack = async (uri: string) => {
     setBusy(true);
     setError(null);
+    const storage = getPassengerRepeatStorage() ?? unavailableStorage;
+    const previousRepeatSession = readPassengerRepeatSession(storage);
+    const nextRepeatSession = createPassengerRepeatSession(
+      uri,
+      status?.state === "ready" ? (status.playback.track?.uri ?? null) : null,
+      previousRepeatSession?.originalRepeatMode ??
+        (status?.state === "ready" ? status.playback.repeatMode : null) ??
+        "off",
+    );
+    writePassengerRepeatSession(storage, nextRepeatSession);
+    passengerRepeatEnableRetryGate.succeeded(nextRepeatSession);
     try {
       const previousTrackKey = trackKey(status);
       await playPersonalSpotifyTrack({ data: { uri } });
       onMusicAction("play");
       await refreshUntilTrackChanges(previousTrackKey);
     } catch (requestError) {
+      if (isSamePassengerRepeatSession(readPassengerRepeatSession(storage), nextRepeatSession)) {
+        writePassengerRepeatSession(storage, previousRepeatSession);
+      }
       setError(requestError instanceof Error ? requestError.message : t.spotifyControlError);
     } finally {
       setBusy(false);
