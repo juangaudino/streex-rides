@@ -37,7 +37,7 @@ jobs:
         run: bun run lint
 
       - name: Test
-        run: bun test tests/*.test.mjs
+        run: bun test --preload ./tests/no-network.preload.mjs tests/*.test.mjs
 
       - name: Build
         run: bun run build

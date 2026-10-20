@@ -182,7 +182,8 @@ export function usePassengerWeather({
   // coordinates from leaving the tablet. It also makes server-side forecast caching effective.
   const latitude = forecastLocation ? Math.round(forecastLocation.latitude * 100) / 100 : null;
   const longitude = forecastLocation ? Math.round(forecastLocation.longitude * 100) / 100 : null;
-  const locationKey = latitude === null || longitude === null ? "fallback" : `${latitude},${longitude}`;
+  const locationKey =
+    latitude === null || longitude === null ? "fallback" : `${latitude},${longitude}`;
 
   const refresh = useCallback(async () => {
     if (!navigator.onLine) {

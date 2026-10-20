@@ -251,14 +251,33 @@ export function WeatherAtmosphere({
             particle.x = -particle.r;
             particle.y = Math.random() * height;
           }
-          const haze = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, particle.r);
+          const haze = ctx.createRadialGradient(
+            particle.x,
+            particle.y,
+            0,
+            particle.x,
+            particle.y,
+            particle.r,
+          );
           haze.addColorStop(0, `rgba(${color}, ${particle.alpha})`);
           haze.addColorStop(1, `rgba(${color}, 0)`);
           ctx.fillStyle = haze;
-          ctx.fillRect(particle.x - particle.r, particle.y - particle.r, particle.r * 2, particle.r * 2);
+          ctx.fillRect(
+            particle.x - particle.r,
+            particle.y - particle.r,
+            particle.r * 2,
+            particle.r * 2,
+          );
         }
       } else if (variant === "cloudy") {
-        const glow = ctx.createRadialGradient(width * 0.68, height * 0.16, 12, width * 0.68, height * 0.16, Math.max(width, height) * 0.7);
+        const glow = ctx.createRadialGradient(
+          width * 0.68,
+          height * 0.16,
+          12,
+          width * 0.68,
+          height * 0.16,
+          Math.max(width, height) * 0.7,
+        );
         glow.addColorStop(0, "rgba(179, 204, 255, 0.22)");
         glow.addColorStop(0.45, "rgba(116, 146, 191, 0.09)");
         glow.addColorStop(1, "rgba(30, 44, 62, 0)");

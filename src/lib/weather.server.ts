@@ -81,7 +81,10 @@ export async function getPassengerWeatherServer(latitude: number, longitude: num
   if (cached && cached.expiresAt > Date.now()) return cached.value;
 
   try {
-    const { forecastUrl, forecastHourlyUrl, locationName } = await getForecastUrls(latitude, longitude);
+    const { forecastUrl, forecastHourlyUrl, locationName } = await getForecastUrls(
+      latitude,
+      longitude,
+    );
     const [hourlyPayload, dailyPayload] = await Promise.all([
       fetchJson(forecastHourlyUrl),
       fetchJson(forecastUrl),

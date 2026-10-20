@@ -137,5 +137,10 @@ export function normalizeNwsHourlyForecast(payload: unknown): PassengerWeatherSn
 }
 
 export function normalizeNwsDailyForecast(payload: unknown): PassengerWeatherSnapshot {
-  return normalizeNwsForecast(payload, 8, "The weather forecast has no usable daily periods.", true);
+  return normalizeNwsForecast(
+    payload,
+    8,
+    "The weather forecast has no usable daily periods.",
+    true,
+  );
 }
