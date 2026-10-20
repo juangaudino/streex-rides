@@ -1,17 +1,19 @@
 # STREEX — HANDOFF maestro
 
-Checkpoint: 2026-10-20. S02 está HECHA tras QA controlado de aceptación, rechazo, reintento idempotente y Calendar. La entrada pública `getstreex.com` fue redirigida a Rides en Cloudflare. Rama: main. Baseline de auditoría: c38d98f (feat(passenger): deepen private analytics). S01 contiene Analytics; S02.2 protege las respuestas de cotización. No se modificó lógica, Pricing, Passenger, Horizon ni migraciones para cerrar S02.3.
+Checkpoint: 2026-10-20. S01–S03 están HECHAS; S03 cerró con formateo acotado y CI verde. S02 quedó validada con QA controlado de aceptación, rechazo, reintento idempotente y Calendar. La entrada pública `getstreex.com` fue redirigida a Rides en Cloudflare. Rama: main. Baseline de auditoría: c38d98f (feat(passenger): deepen private analytics). No se modificaron lógica de producto, Pricing, Horizon ni migraciones en S03.
 
 ## Reanudar aquí
 
-**Siguiente ID: S03 — formato acotado y CI/checks coherentes.**
+**Siguiente ID: S04 — dependencias afectadas, actualización compatible dirigida.**
 
-S02 está HECHA. Para S03, empezar con un inventario de los errores de formato y los archivos afectados. El propietario debe aprobar cualquier archivo Passenger antes de modificarlo. No hacer formato global ni cambios de lógica. Modelo recomendado: **Luna, razonamiento Medio**; el alcance es mecánico y acotado una vez identificados los archivos.
+S03 está HECHA. Para S04, revalidar los advisories actuales de las familias TanStack/Seroval identificadas por la auditoría, confirmar las versiones resueltas y preparar la actualización compatible mínima. No hacer upgrades mayores indiscriminados; detenerse y presentar el impacto si se requiere un cambio mayor. Modelo recomendado: **Terra, razonamiento Alto** por compatibilidad SSR y server functions.
 
-1. Leer [AGENTS](../AGENTS.md), [ROADMAP](ROADMAP.md) y la [tarjeta S03](EXECUTION_PLAN.md#s03--ci-verde-sin-refactor-de-producto).
-2. Enumerar solo los errores Prettier ya identificados, sus archivos y la deuda basal de lint. No ejecutar `format` global.
-3. Presentar el diff previsto por archivo y pedir aprobación antes de tocar cualquier archivo Passenger. No modificar archivos ajenos al inventario aprobado.
-4. Aplicar formato mecánico en un checkpoint separado, validar diff sin cambios semánticos, lint, typecheck, tests y build; actualizar ROADMAP/HANDOFF y cerrar con commit/push.
+1. Leer [AGENTS](../AGENTS.md), [ROADMAP](ROADMAP.md) y la [tarjeta S04](EXECUTION_PLAN.md#s04--dependencias-vulnerables-dirigidas).
+2. Verificar advisories/versiones vigentes solo para las familias afectadas y mapear el árbol de dependencias actual.
+3. Separar vulnerabilidades de runtime/deploy de hallazgos dev/transitivos; no inferir explotabilidad solo desde el conteo del audit.
+4. Aplicar actualizaciones compatibles dirigidas, validar árbol y lockfile, SSR, auth, server functions, rutas de reserva/Pricing y build. Si hace falta un major o no puede conservarse compatibilidad, detenerse con evidencia y alternativas.
+
+Evidencia S03 (2026-10-20): commit `e9ca698` publicado en `main`. Se formatearon exclusivamente `WeatherAtmosphere.tsx`, `usePassengerState.ts`, `weather.server.ts` y `weather.ts`; se configuró el preload ya existente `tests/no-network.preload.mjs` en el workflow de calidad. Prettier y `git diff --check` pasan; la suite completa pasa con 86 tests/2203 assertions. GitHub Actions run `39481034552` terminó success en Typecheck, Lint, Test y Build. Los comandos locales de typecheck/build quedaron sin salida en esta máquina, pero el run remoto concluyó todas las etapas en verde. No se alteró comportamiento de Passenger.
 
 S02.1 decidida: 72 horas y enlaces UUID heredados neutrales, con reemisión manual. S02.2 implementada: `/booking/accept` y `/booking/decline` sólo consultan estado al abrirse; una acción POST deliberada exige capacidad HMAC vinculada a reserva, acción y caducidad. La transición `quoted` usa compare-and-set para que aceptación/rechazo concurrentes tengan un único ganador; las pantallas heredadas no consultan ni mutan una reserva. Los envíos Admin/Pricing verifican la configuración antes de actualizar la cotización. La clave dedicada fue configurada por el propietario y no fue leída ni verificada directamente durante esta fase; el código conserva el secreto de preview existente como fallback acotado, nunca el secreto de Calendar.
 

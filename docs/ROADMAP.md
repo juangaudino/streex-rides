@@ -36,8 +36,8 @@ No interpretar el orden dentro del informe histórico como prioridad vigente. No
 | --- | ------------------------------------------------------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | S01 | Analytics: excluir respuestas/previews y sanear URLs/referrers                 | P0        | HECHA — pruebas focalizadas, build y carga local sintética verificados                                                         |
 | S02 | Respuesta a cotización: GET neutral, acción deliberada, token y compatibilidad | P0        | HECHA — S02.1/S02.2 implementadas y S02.3 QA de aceptación, rechazo, reintento idempotente y Calendar completado el 2026-10-20 |
-| S03 | Formato acotado y CI/checks coherentes                                         | P1        | LISTA — inventariar los errores de formato; aprobar el alcance antes de modificar archivos Passenger                           |
-| S04 | Dependencias afectadas, actualización compatible dirigida                      | P1        | PLANIFICADA                                                                                                                    |
+| S03 | Formato acotado y CI/checks coherentes                                         | P1        | HECHA — formato limitado, preload de test configurado y GitHub Actions verde en e9ca698                                        |
+| S04 | Dependencias afectadas, actualización compatible dirigida                      | P1        | LISTA — revalidar advisories TanStack/Seroval y evaluar el mínimo upgrade compatible                                           |
 | S05 | Matriz de permisos, RLS y suspensión/archivo, Data API y Storage               | P1        | PLANIFICADA; migración y pruebas aisladas con gate propio                                                                      |
 | S06 | Protección de contraseña y recuperación administrativa                         | P1        | PLANIFICADA; requiere configuración autorizada                                                                                 |
 
