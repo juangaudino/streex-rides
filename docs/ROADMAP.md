@@ -1,6 +1,6 @@
 # STREEX — ROADMAP maestro
 
-Actualizado: 2026-09-05. Única autoridad documental de prioridad y estado para Rides, Pricing/Admin, Passenger y Horizon. Sustituye los roadmaps por producto. [HANDOFF](HANDOFF.md) indica dónde retomar; [EXECUTION_PLAN](EXECUTION_PLAN.md) define cómo ejecutar cada ID.
+Actualizado: 2026-10-20. Única autoridad documental de prioridad y estado para Rides, Pricing/Admin, Passenger y Horizon. Sustituye los roadmaps por producto. [HANDOFF](HANDOFF.md) indica dónde retomar; [EXECUTION_PLAN](EXECUTION_PLAN.md) define cómo ejecutar cada ID.
 
 ## Decisiones que gobiernan el orden
 
@@ -32,14 +32,14 @@ No interpretar el orden dentro del informe histórico como prioridad vigente. No
 
 ### F1 — contención y seguridad actual
 
-| ID  | Tarea                                                                          | Prioridad | Estado                                                                                                    |
-| --- | ------------------------------------------------------------------------------ | --------- | --------------------------------------------------------------------------------------------------------- |
-| S01 | Analytics: excluir respuestas/previews y sanear URLs/referrers                 | P0        | HECHA — pruebas focalizadas, build y carga local sintética verificados                                    |
-| S02 | Respuesta a cotización: GET neutral, acción deliberada, token y compatibilidad | P0        | VALIDACIÓN PENDIENTE — S02.1 aprobada y S02.2 implementada; falta S02.3 QA controlado de correo/respuesta |
-| S03 | Formato acotado y CI/checks coherentes                                         | P1        | PLANIFICADA; enumerar y aprobar archivos Passenger implicados                                             |
-| S04 | Dependencias afectadas, actualización compatible dirigida                      | P1        | PLANIFICADA                                                                                               |
-| S05 | Matriz de permisos, RLS y suspensión/archivo, Data API y Storage               | P1        | PLANIFICADA; migración y pruebas aisladas con gate propio                                                 |
-| S06 | Protección de contraseña y recuperación administrativa                         | P1        | PLANIFICADA; requiere configuración autorizada                                                            |
+| ID  | Tarea                                                                          | Prioridad | Estado                                                                                                                         |
+| --- | ------------------------------------------------------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| S01 | Analytics: excluir respuestas/previews y sanear URLs/referrers                 | P0        | HECHA — pruebas focalizadas, build y carga local sintética verificados                                                         |
+| S02 | Respuesta a cotización: GET neutral, acción deliberada, token y compatibilidad | P0        | HECHA — S02.1/S02.2 implementadas y S02.3 QA de aceptación, rechazo, reintento idempotente y Calendar completado el 2026-10-20 |
+| S03 | Formato acotado y CI/checks coherentes                                         | P1        | LISTA — inventariar los errores de formato; aprobar el alcance antes de modificar archivos Passenger                           |
+| S04 | Dependencias afectadas, actualización compatible dirigida                      | P1        | PLANIFICADA                                                                                                                    |
+| S05 | Matriz de permisos, RLS y suspensión/archivo, Data API y Storage               | P1        | PLANIFICADA; migración y pruebas aisladas con gate propio                                                                      |
+| S06 | Protección de contraseña y recuperación administrativa                         | P1        | PLANIFICADA; requiere configuración autorizada                                                                                 |
 
 Gate G0: contención y controles críticos de acceso verificados; ninguna regresión nueva. Una indisponibilidad externa de S06 debe declararse y ser aceptada, no bloquear artificialmente diagnóstico local de Pricing. Un P0 sin cerrar sí bloquea cualquier ampliación.
 
