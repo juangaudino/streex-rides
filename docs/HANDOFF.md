@@ -1,19 +1,21 @@
 # STREEX — HANDOFF maestro
 
-Checkpoint: 2026-10-20. S01–S03 están HECHAS; S03 cerró con formateo acotado y CI verde. S02 quedó validada con QA controlado de aceptación, rechazo, reintento idempotente y Calendar. La entrada pública `getstreex.com` fue redirigida a Rides en Cloudflare. Rama: main. Baseline de auditoría: c38d98f (feat(passenger): deepen private analytics). No se modificaron lógica de producto, Pricing, Horizon ni migraciones en S03.
+Checkpoint: 2026-10-20. S01–S03 están HECHAS; S03 cerró con formateo acotado y CI verde. S04 sigue en VALIDACIÓN PENDIENTE: el advisory de Seroval/TanStack conocido está corregido en el lock actual, pero no se pudo refrescar el inventario completo. P01 tiene instrumentación local nueva, pero la configuración real de Maps sigue sin verificarse. S02 quedó validada con QA controlado de aceptación, rechazo, reintento idempotente y Calendar. La entrada pública `getstreex.com` fue redirigida a Rides en Cloudflare. Rama: main. Baseline de auditoría: c38d98f (feat(passenger): deepen private analytics).
 
 ## Reanudar aquí
 
-**Siguiente ID: S04 — dependencias afectadas, actualización compatible dirigida.**
+**Siguiente ID: S04.2 — completar el inventario de advisories actuales sin upgrades a ciegas.**
 
-S03 está HECHA. Para S04, revalidar los advisories actuales de las familias TanStack/Seroval identificadas por la auditoría, confirmar las versiones resueltas y preparar la actualización compatible mínima. No hacer upgrades mayores indiscriminados; detenerse y presentar el impacto si se requiere un cambio mayor. Modelo recomendado: **Terra, razonamiento Alto** por compatibilidad SSR y server functions.
+S03 está HECHA. S04.1 confirmó que el lock actual resuelve `seroval@1.6.9` y `@tanstack/start-server-core@1.169.39`, por encima de los mínimos corregidos para los advisories identificados. `bun audit` no pudo consultar el servicio de advisories (`ConnectionRefused`), así que no declarar S04 cerrada ni actualizar paquetes sin evidencia actual. Modelo recomendado al reintentar: **Terra, razonamiento Alto** por compatibilidad SSR y server functions.
 
 1. Leer [AGENTS](../AGENTS.md), [ROADMAP](ROADMAP.md) y la [tarjeta S04](EXECUTION_PLAN.md#s04--dependencias-vulnerables-dirigidas).
-2. Verificar advisories/versiones vigentes solo para las familias afectadas y mapear el árbol de dependencias actual.
-3. Separar vulnerabilidades de runtime/deploy de hallazgos dev/transitivos; no inferir explotabilidad solo desde el conteo del audit.
-4. Aplicar actualizaciones compatibles dirigidas, validar árbol y lockfile, SSR, auth, server functions, rutas de reserva/Pricing y build. Si hace falta un major o no puede conservarse compatibilidad, detenerse con evidencia y alternativas.
+2. Cuando el servicio vuelva a responder, revalidar advisories sobre el lock actual y separar riesgos runtime/deploy de hallazgos dev/transitivos.
+3. Actualizar solo rangos afectados con releases compatibles; no inferir riesgo/explotabilidad ni hacer upgrades mayores desde el conteo histórico.
+4. Validar árbol/lock, SSR, Auth, server functions, reserva/Pricing y build. Si la conexión sigue bloqueada, conservar la clasificación pendiente y continuar solo con tareas técnicamente independientes.
 
 Evidencia S03 (2026-10-20): commit `e9ca698` publicado en `main`. Se formatearon exclusivamente `WeatherAtmosphere.tsx`, `usePassengerState.ts`, `weather.server.ts` y `weather.ts`; se configuró el preload ya existente `tests/no-network.preload.mjs` en el workflow de calidad. Prettier y `git diff --check` pasan; la suite completa pasa con 86 tests/2203 assertions. GitHub Actions run `39481034552` terminó success en Typecheck, Lint, Test y Build. Los comandos locales de typecheck/build quedaron sin salida en esta máquina, pero el run remoto concluyó todas las etapas en verde. No se alteró comportamiento de Passenger.
+
+Evidencia S04.1/P01 (2026-10-20): `bun pm why` confirma `seroval@1.6.9` y `@tanstack/start-server-core@1.169.39`; los advisories enlazados en la auditoría fijan versiones mínimas corregidas inferiores a las resueltas actuales. `bun audit --json` falló con `ConnectionRefused`; no se cambió `package.json` ni `bun.lock`. P01 añadió clasificación segura de HTTP/API status, `ZERO_RESULTS`, errores de red y timeout en `pricing-maps.server.ts`, más cuatro pruebas simuladas; `GOOGLE_MAPS_SERVER_KEY` quedó documentada en `.env.example`. La suite completa local con preload pasa 90/90. No se hizo una llamada Google real. El conector Vercel devolvió 403 por falta de acceso a `juangaudinos-projects`; no hay CLI `vercel` instalada, por lo que el entorno Production, logs y status de la clave siguen sin verificar. La clave local de browser presente no demuestra configuración Production ni del server.
 
 S02.1 decidida: 72 horas y enlaces UUID heredados neutrales, con reemisión manual. S02.2 implementada: `/booking/accept` y `/booking/decline` sólo consultan estado al abrirse; una acción POST deliberada exige capacidad HMAC vinculada a reserva, acción y caducidad. La transición `quoted` usa compare-and-set para que aceptación/rechazo concurrentes tengan un único ganador; las pantallas heredadas no consultan ni mutan una reserva. Los envíos Admin/Pricing verifican la configuración antes de actualizar la cotización. La clave dedicada fue configurada por el propietario y no fue leída ni verificada directamente durante esta fase; el código conserva el secreto de preview existente como fallback acotado, nunca el secreto de Calendar.
 

@@ -32,14 +32,14 @@ No interpretar el orden dentro del informe histórico como prioridad vigente. No
 
 ### F1 — contención y seguridad actual
 
-| ID  | Tarea                                                                          | Prioridad | Estado                                                                                                                         |
-| --- | ------------------------------------------------------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| S01 | Analytics: excluir respuestas/previews y sanear URLs/referrers                 | P0        | HECHA — pruebas focalizadas, build y carga local sintética verificados                                                         |
-| S02 | Respuesta a cotización: GET neutral, acción deliberada, token y compatibilidad | P0        | HECHA — S02.1/S02.2 implementadas y S02.3 QA de aceptación, rechazo, reintento idempotente y Calendar completado el 2026-10-20 |
-| S03 | Formato acotado y CI/checks coherentes                                         | P1        | HECHA — formato limitado, preload de test configurado y GitHub Actions verde en e9ca698                                        |
-| S04 | Dependencias afectadas, actualización compatible dirigida                      | P1        | LISTA — revalidar advisories TanStack/Seroval y evaluar el mínimo upgrade compatible                                           |
-| S05 | Matriz de permisos, RLS y suspensión/archivo, Data API y Storage               | P1        | PLANIFICADA; migración y pruebas aisladas con gate propio                                                                      |
-| S06 | Protección de contraseña y recuperación administrativa                         | P1        | PLANIFICADA; requiere configuración autorizada                                                                                 |
+| ID  | Tarea                                                                          | Prioridad | Estado                                                                                                                                                 |
+| --- | ------------------------------------------------------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| S01 | Analytics: excluir respuestas/previews y sanear URLs/referrers                 | P0        | HECHA — pruebas focalizadas, build y carga local sintética verificados                                                                                 |
+| S02 | Respuesta a cotización: GET neutral, acción deliberada, token y compatibilidad | P0        | HECHA — S02.1/S02.2 implementadas y S02.3 QA de aceptación, rechazo, reintento idempotente y Calendar completado el 2026-10-20                         |
+| S03 | Formato acotado y CI/checks coherentes                                         | P1        | HECHA — formato limitado, preload de test configurado y GitHub Actions verde en e9ca698                                                                |
+| S04 | Dependencias afectadas, actualización compatible dirigida                      | P1        | VALIDACIÓN PENDIENTE — Seroval/TanStack conocidos ya están en versiones corregidas; auditoría completa no disponible por conexión al servicio advisory |
+| S05 | Matriz de permisos, RLS y suspensión/archivo, Data API y Storage               | P1        | PLANIFICADA; migración y pruebas aisladas con gate propio                                                                                              |
+| S06 | Protección de contraseña y recuperación administrativa                         | P1        | PLANIFICADA; requiere configuración autorizada                                                                                                         |
 
 Gate G0: contención y controles críticos de acceso verificados; ninguna regresión nueva. Una indisponibilidad externa de S06 debe declararse y ser aceptada, no bloquear artificialmente diagnóstico local de Pricing. Un P0 sin cerrar sí bloquea cualquier ampliación.
 
@@ -53,16 +53,16 @@ Después de UX00 se vuelve a F2. No encadenar rediseños mientras siga abierto r
 
 ### F2 — Pricing y ciclo monetario
 
-| ID  | Tarea                                                      | Prioridad | Estado                                                             |
-| --- | ---------------------------------------------------------- | --------- | ------------------------------------------------------------------ |
-| P01 | Diagnóstico Geocoding y observabilidad saneada             | P1        | PLANIFICADA; causa real no confirmada                              |
-| P02 | Payload/visualización de cotización vinculada              | P1        | PLANIFICADA                                                        |
-| P03 | Timezone y vigencias                                       | P1        | PLANIFICADA                                                        |
-| P04 | Contrato tarifario con ejemplos aprobados                  | P1        | DECISIÓN — ejemplos y reglas, no tarifas inventadas                |
-| P05 | Implementar gaps de reglas acordados en P04                | P1        | PLANIFICADA                                                        |
-| P06 | Cálculo vigente, invalidación y override explícito         | P1        | PLANIFICADA                                                        |
-| P07 | Rechazo/completado y lifecycle de Pricing consistente      | P1        | PLANIFICADA                                                        |
-| P08 | Transiciones, persistencia atómica e idempotencia de envío | P1        | PLANIFICADA; decidir semántica de enviado/promoción y recuperación |
+| ID  | Tarea                                                      | Prioridad | Estado                                                                                                              |
+| --- | ---------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
+| P01 | Diagnóstico Geocoding y observabilidad saneada             | P1        | VALIDACIÓN PENDIENTE — instrumentación local y 4 pruebas listas; producción no verificable sin acceso Vercel/Google |
+| P02 | Payload/visualización de cotización vinculada              | P1        | PLANIFICADA                                                                                                         |
+| P03 | Timezone y vigencias                                       | P1        | PLANIFICADA                                                                                                         |
+| P04 | Contrato tarifario con ejemplos aprobados                  | P1        | DECISIÓN — ejemplos y reglas, no tarifas inventadas                                                                 |
+| P05 | Implementar gaps de reglas acordados en P04                | P1        | PLANIFICADA                                                                                                         |
+| P06 | Cálculo vigente, invalidación y override explícito         | P1        | PLANIFICADA                                                                                                         |
+| P07 | Rechazo/completado y lifecycle de Pricing consistente      | P1        | PLANIFICADA                                                                                                         |
+| P08 | Transiciones, persistencia atómica e idempotencia de envío | P1        | PLANIFICADA; decidir semántica de enviado/promoción y recuperación                                                  |
 
 Pricing migration ya aplicada. No está “pendiente de instalar”; sigue VALIDACIÓN PENDIENTE de release. P01 puede bloquear Maps real, pero no pruebas locales de P02/P03/P04: si ocurre, documentar la excepción y avanzar solo a la primera tarjeta independiente, nunca declarar Pricing listo.
 
