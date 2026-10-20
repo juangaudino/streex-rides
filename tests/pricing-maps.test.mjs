@@ -30,6 +30,20 @@ function geocodeLocation() {
 }
 
 describe("server-side Google Maps diagnostics", () => {
+  test("does not call Google when the server key is missing", async () => {
+    delete process.env.GOOGLE_MAPS_SERVER_KEY;
+    let requests = 0;
+    globalThis.fetch = async () => {
+      requests += 1;
+      return new Response(JSON.stringify({ status: "OK", results: [] }));
+    };
+
+    await expect(geocodeLocation()).rejects.toThrow(
+      "Google Maps is not configured for server-side pricing requests.",
+    );
+    expect(requests).toBe(0);
+  });
+
   test("distinguishes ZERO_RESULTS from provider denial in HTTP 200 responses", async () => {
     globalThis.fetch = async () =>
       new Response(JSON.stringify({ status: "ZERO_RESULTS", results: [] }));
