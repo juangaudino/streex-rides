@@ -26,7 +26,7 @@ Arquitectura: React 19, TanStack Start/Router, TypeScript, Vite/Tailwind, Bun y 
 
 Ubicación: /admin/pricing, src/features/pricing/, PricingPanel, pricing.functions, pricing-maps.server y pricing-lifecycle.server.
 
-La migración 20260830015239_pricing_engine.sql está aplicada según la auditoría. No reaplicarla. Su clave Maps server-side está documentada como configurada históricamente; autorización efectiva/Geocoding requieren diagnóstico. VITE_GOOGLE_MAPS_BROWSER_KEY es una credencial distinta para autocomplete.
+La migración 20260830015239_pricing_engine.sql está aplicada según la auditoría. No reaplicarla. `GOOGLE_MAPS_SERVER_KEY` está asignada en Vercel Production/Preview/Development, pero no se inspeccionó su valor ni se validó Geocoding server-side. La variable de navegador `VITE_GOOGLE_MAPS_BROWSER_KEY` está asignada en Production/Preview; una prueba real del formulario registró HTTP 403 `PERMISSION_DENIED` en `places.googleapis.com/.../AutocompletePlaces`. Falta aislar si se debe a API habilitada, restricciones de key/referrer/proyecto u otra autorización. No modificar claves o permisos a ciegas. Son credenciales distintas y una no sustituye a la otra.
 
 Mantener:
 
