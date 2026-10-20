@@ -55,7 +55,7 @@ Después de UX00 se vuelve a F2. No encadenar rediseños mientras siga abierto r
 
 | ID  | Tarea                                                      | Prioridad | Estado                                                                                                              |
 | --- | ---------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
-| P01 | Diagnóstico Geocoding y observabilidad saneada             | P1        | VALIDACIÓN PENDIENTE — instrumentación local y 4 pruebas listas; producción no verificable sin acceso Vercel/Google |
+| P01 | Diagnóstico Geocoding y observabilidad saneada             | P1        | VALIDACIÓN PENDIENTE — instrumentación local y 4 pruebas listas; variables/logs de Production y llamada real sin verificar |
 | P02 | Payload/visualización de cotización vinculada              | P1        | PLANIFICADA                                                                                                         |
 | P03 | Timezone y vigencias                                       | P1        | PLANIFICADA                                                                                                         |
 | P04 | Contrato tarifario con ejemplos aprobados                  | P1        | DECISIÓN — ejemplos y reglas, no tarifas inventadas                                                                 |
