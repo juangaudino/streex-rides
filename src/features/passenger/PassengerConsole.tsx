@@ -88,6 +88,7 @@ import type { AroundYouLanguage } from "./around-you/around-you-types";
 import { useAroundYouEngine } from "./around-you/useAroundYouEngine";
 import { usePassengerLocation } from "./around-you/usePassengerLocation";
 import { usePassengerAnalytics } from "./usePassengerAnalytics";
+import { resolveIdleScreenTap } from "./idle-screen-dim";
 import {
   createSpotifyPostControlRefreshScheduler,
   createSingleFlight,
@@ -394,6 +395,8 @@ const copy = {
     idleTitle: "Ready for your Streex experience?",
     idleDescription: "Your music, games and Streex experience are one tap away.",
     idleAction: "Tap anywhere to explore",
+    idleDimAction: "Tap to dim",
+    idleDimWake: "Tap anywhere to wake the screen",
     idleNowPlaying: "Now playing on Streex",
     idleMusicReady: "Your Streex soundtrack",
     idleMusicPrompt: "Your soundtrack starts here",
@@ -598,6 +601,8 @@ const copy = {
     idleTitle: "¿Listo para tu experiencia Streex?",
     idleDescription: "Tu música, juegos y experiencia Streex están a un toque.",
     idleAction: "Toca cualquier lugar para explorar",
+    idleDimAction: "Toca para oscurecer",
+    idleDimWake: "Toca en cualquier lugar para activar la pantalla",
     idleNowPlaying: "Reproduciendo en Streex",
     idleMusicReady: "Tu banda sonora Streex",
     idleMusicPrompt: "Tu banda sonora empieza aquí",
@@ -622,6 +627,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
   }, []);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [sessionKey, setSessionKey] = useState(0);
+  const [idleScreenDimmed, setIdleScreenDimmed] = useState(false);
   const [aroundYouTestMode] = useState(
     () =>
       typeof window !== "undefined" &&
@@ -963,6 +969,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
       {idleReset.promptOpen && (
         <PassengerIdlePrompt
           config={config}
+          dimmed={idleScreenDimmed}
           featureRotationSeconds={idleFeatureRotationSeconds}
           fallbackTemperatureFahrenheit={consoleConfig.weather.fallbackTemperatureFahrenheit}
           language={language}
@@ -987,7 +994,12 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
             idleReset.resume();
             navigateTo("where-we-ride");
           }}
-          onResume={idleReset.resume}
+          onDimScreen={() => setIdleScreenDimmed(true)}
+          onWakeOrResume={() => {
+            const result = resolveIdleScreenTap(idleScreenDimmed);
+            setIdleScreenDimmed(result.dimmed);
+            if (result.resume) idleReset.resume();
+          }}
           weather={weather.snapshot}
           weatherCity={weather.city}
           weatherAtmosphereOverride={weatherAtmosphereTestOverride}
@@ -999,6 +1011,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
 
 function PassengerIdlePrompt({
   config,
+  dimmed,
   featureRotationSeconds,
   fallbackTemperatureFahrenheit,
   language,
@@ -1008,12 +1021,14 @@ function PassengerIdlePrompt({
   onExploreServices,
   onExploreStreex,
   onExploreYourRide,
-  onResume,
+  onDimScreen,
+  onWakeOrResume,
   weather,
   weatherCity,
   weatherAtmosphereOverride,
 }: {
   config: AppConfig;
+  dimmed: boolean;
   featureRotationSeconds: number;
   fallbackTemperatureFahrenheit: number;
   language: Language;
@@ -1023,7 +1038,8 @@ function PassengerIdlePrompt({
   onExploreServices: () => void;
   onExploreStreex: () => void;
   onExploreYourRide: () => void;
-  onResume: () => void;
+  onDimScreen: () => void;
+  onWakeOrResume: () => void;
   weather: PassengerWeatherSnapshot | null;
   weatherCity: string;
   weatherAtmosphereOverride: AtmosphereVariant | null;
@@ -1044,7 +1060,7 @@ function PassengerIdlePrompt({
 
   return (
     <div
-      onClick={onResume}
+      onClick={onWakeOrResume}
       className={`passenger-idle-prompt fixed inset-0 z-[100] grid cursor-pointer place-items-center overflow-hidden bg-[#080808]/95 p-8 text-left text-white backdrop-blur-xl focus:outline-none focus:ring-4 focus:ring-inset focus:ring-[#E6CE20]/60${
         logicalRest ? " passenger-idle-prompt--logical-rest" : ""
       }`}
@@ -1074,6 +1090,7 @@ function PassengerIdlePrompt({
             config.passengerConsole.music.mode === "provider" &&
             config.passengerConsole.music.providerName === "Spotify"
           }
+          onDimScreen={onDimScreen}
           onExploreMusic={onExploreMusic}
           t={primary}
         />
@@ -1104,6 +1121,17 @@ function PassengerIdlePrompt({
           t={primary}
         />
       </div>
+      {dimmed && (
+        <button
+          type="button"
+          className="passenger-idle-dim-layer"
+          aria-label={primary.idleDimWake}
+          onClick={(event) => {
+            event.stopPropagation();
+            onWakeOrResume();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1456,11 +1484,13 @@ function formatIdleWeatherDay(value: string, language: Language) {
 function IdleSpotifyNowPlaying({
   compact = false,
   enabled,
+  onDimScreen,
   onExploreMusic,
   t,
 }: {
   compact?: boolean;
   enabled: boolean;
+  onDimScreen: () => void;
   onExploreMusic: () => void;
   t: (typeof copy)[Language];
 }) {
@@ -1590,17 +1620,30 @@ function IdleSpotifyNowPlaying({
                 ? t.idleMusicPrompt
                 : t.idleMusicReady}
           </span>
-          <button
-            type="button"
-            className="passenger-idle-open-music"
-            onClick={(event) => {
-              event.stopPropagation();
-              onExploreMusic();
-            }}
-          >
-            <Music2 aria-hidden="true" />
-            Tap to open Music
-          </button>
+          <span className="passenger-idle-quick-actions">
+            <button
+              type="button"
+              className="passenger-idle-open-music"
+              onClick={(event) => {
+                event.stopPropagation();
+                onExploreMusic();
+              }}
+            >
+              <Music2 aria-hidden="true" />
+              Tap to open Music
+            </button>
+            <button
+              type="button"
+              className="passenger-idle-dim-action"
+              onClick={(event) => {
+                event.stopPropagation();
+                onDimScreen();
+              }}
+            >
+              <MoonStar aria-hidden="true" />
+              {t.idleDimAction}
+            </button>
+          </span>
         </span>
         <SpotifyMarquee className="passenger-idle-track-title mt-4 text-3xl font-black leading-tight tracking-tight sm:text-4xl">
           {track?.title ?? t.idleChooseMusic}
