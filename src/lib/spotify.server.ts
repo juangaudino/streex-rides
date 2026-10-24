@@ -58,7 +58,7 @@ type SpotifySearchResponse = {
       name?: string;
       duration_ms?: number;
       explicit?: boolean;
-      album?: { name?: string; images?: Array<{ url?: string }> };
+      album?: { uri?: string; name?: string; images?: Array<{ url?: string }> };
       artists?: Array<{ name?: string }>;
     }>;
   };
@@ -87,6 +87,7 @@ export type PersonalSpotifyPlayback = {
 export type SpotifyTrackSearchResult = {
   id: string;
   uri: string;
+  albumUri: string | null;
   title: string;
   artist: string;
   album: string | null;
@@ -297,6 +298,7 @@ export async function searchSpotifyTracks(
       {
         id: track.id,
         uri: track.uri,
+        albumUri: track.album?.uri ?? null,
         title: track.name,
         artist:
           (track.artists ?? [])
@@ -331,7 +333,7 @@ export async function getSpotifyPlaylistArtwork(
   );
 }
 
-export async function playSpotifyTrack(accessToken: string, uri: string) {
+export async function playSpotifyTrack(accessToken: string, uri: string, albumUri: string) {
   // Resolve the active Connect target at the moment of the passenger action.
   // An unscoped command can land on a different device if Spotify's active
   // player changes while the command is in flight.
@@ -344,7 +346,11 @@ export async function playSpotifyTrack(accessToken: string, uri: string) {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ uris: [uri] }),
+    // Spotify Connect clients have recently been reported to accept a bare
+    // track-URI request (204) but stop playback instead of starting the track.
+    // Starting the album context at the selected track is the documented
+    // equivalent request shape and avoids that broken single-URI path.
+    body: JSON.stringify({ context_uri: albumUri, offset: { uri } }),
   });
   if (response.ok || response.status === 204) return;
 

@@ -3145,7 +3145,7 @@ function PersonalSpotifyMusicView({
     void searchTracks(vibe);
   };
 
-  const playTrack = async (uri: string) => {
+  const playTrack = async (uri: string, albumUri: string) => {
     setBusy(true);
     setError(null);
     const storage = getPassengerRepeatStorage() ?? unavailableStorage;
@@ -3161,7 +3161,7 @@ function PersonalSpotifyMusicView({
     passengerRepeatEnableRetryGate.succeeded(nextRepeatSession);
     try {
       const previousTrackKey = trackKey(status);
-      await playPersonalSpotifyTrack({ data: { uri } });
+      await playPersonalSpotifyTrack({ data: { uri, albumUri } });
       onMusicAction("play");
       await refreshUntilTrackChanges(previousTrackKey);
     } catch (requestError) {
@@ -3434,8 +3434,8 @@ function PersonalSpotifyMusicView({
                   <button
                     key={track.id}
                     type="button"
-                    disabled={busy || !playback?.hasActiveDevice}
-                    onClick={() => void playTrack(track.uri)}
+                    disabled={busy || !playback?.hasActiveDevice || !track.albumUri}
+                    onClick={() => track.albumUri && void playTrack(track.uri, track.albumUri)}
                     className="flex w-full items-center gap-3 border-b border-white/10 bg-black/10 p-3 text-left last:border-b-0 hover:bg-white/[0.05] disabled:opacity-45"
                     aria-label={`${t.playSong}: ${track.title}`}
                   >

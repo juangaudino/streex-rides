@@ -19,6 +19,7 @@ import {
   getSpotifyPlayback,
   playSpotifyTrack,
   refreshSpotifyAccessToken,
+  searchSpotifyTracks,
   setSpotifyRepeatMode,
 } from "../src/lib/spotify.server.ts";
 import { encryptSpotifyToken } from "../src/lib/spotify-crypto.server.ts";
@@ -451,7 +452,11 @@ describe("Passenger CPU optimization safeguards", () => {
       };
       await expect(setSpotifyRepeatMode("mock-access-token", "track")).resolves.toBeUndefined();
       await expect(
-        playSpotifyTrack("mock-access-token", "spotify:track:1234567890123456789012"),
+        playSpotifyTrack(
+          "mock-access-token",
+          "spotify:track:1234567890123456789012",
+          "spotify:album:1234567890123456789012",
+        ),
       ).resolves.toBeUndefined();
       expect(playerCommands[0].url).toBe(
         "https://api.spotify.com/v1/me/player/repeat?state=track&device_id=vehicle-device-id",
@@ -461,7 +466,8 @@ describe("Passenger CPU optimization safeguards", () => {
         "https://api.spotify.com/v1/me/player/play?device_id=vehicle-device-id",
       );
       expect(JSON.parse(playerCommands[1].init.body)).toEqual({
-        uris: ["spotify:track:1234567890123456789012"],
+        context_uri: "spotify:album:1234567890123456789012",
+        offset: { uri: "spotify:track:1234567890123456789012" },
       });
 
       globalThis.fetch = async (input) => {
@@ -472,7 +478,11 @@ describe("Passenger CPU optimization safeguards", () => {
         });
       };
       await expect(
-        playSpotifyTrack("mock-access-token", "spotify:track:1234567890123456789012"),
+        playSpotifyTrack(
+          "mock-access-token",
+          "spotify:track:1234567890123456789012",
+          "spotify:album:1234567890123456789012",
+        ),
       ).rejects.toThrow("Spotify has no active device");
 
       const fallbackCalls = [];
@@ -489,7 +499,11 @@ describe("Passenger CPU optimization safeguards", () => {
         return new Response(null, { status: 204 });
       };
       await expect(
-        playSpotifyTrack("mock-access-token", "spotify:track:1234567890123456789012"),
+        playSpotifyTrack(
+          "mock-access-token",
+          "spotify:track:1234567890123456789012",
+          "spotify:album:1234567890123456789012",
+        ),
       ).resolves.toBeUndefined();
       expect(fallbackCalls).toEqual([
         "https://api.spotify.com/v1/me/player",
@@ -516,6 +530,60 @@ describe("Passenger CPU optimization safeguards", () => {
       else process.env.SPOTIFY_CLIENT_SECRET = previousEnv.clientSecret;
       if (previousEnv.key === undefined) delete process.env.SPOTIFY_TOKEN_ENCRYPTION_KEY;
       else process.env.SPOTIFY_TOKEN_ENCRYPTION_KEY = previousEnv.key;
+    }
+  });
+
+  test("maps the searched album URI and starts the selected track as album context", async () => {
+    const previousFetch = globalThis.fetch;
+    const requests = [];
+    globalThis.fetch = async (input, init) => {
+      const url = String(input);
+      requests.push({ url, init });
+      if (url.includes("/search?")) {
+        return new Response(
+          JSON.stringify({
+            tracks: {
+              items: [
+                {
+                  id: "1234567890123456789012",
+                  uri: "spotify:track:1234567890123456789012",
+                  name: "Mock Selected Track",
+                  album: {
+                    uri: "spotify:album:abcdefghijklmnopqrstuv",
+                    name: "Mock Album",
+                    images: [],
+                  },
+                },
+              ],
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      if (url.endsWith("/me/player")) {
+        return new Response(
+          JSON.stringify({ device: { id: "vehicle-device-id", is_active: true } }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response(null, { status: 204 });
+    };
+
+    try {
+      const [track] = await searchSpotifyTracks("mock-access-token", "mock track", 5, "US");
+      expect(track?.albumUri).toBe("spotify:album:abcdefghijklmnopqrstuv");
+      if (!track?.albumUri) throw new Error("Expected the search result to include an album URI.");
+      await playSpotifyTrack("mock-access-token", track.uri, track.albumUri);
+      const playRequest = requests.find(({ url }) => url.includes("/me/player/play?"));
+      expect(playRequest?.url).toBe(
+        "https://api.spotify.com/v1/me/player/play?device_id=vehicle-device-id",
+      );
+      expect(JSON.parse(playRequest.init.body)).toEqual({
+        context_uri: "spotify:album:abcdefghijklmnopqrstuv",
+        offset: { uri: "spotify:track:1234567890123456789012" },
+      });
+    } finally {
+      globalThis.fetch = previousFetch;
     }
   });
 

@@ -38,7 +38,10 @@ const SearchSchema = z.object({
   limit: z.number().int().min(1).max(10),
   market: z.string().regex(/^[A-Z]{2}$/),
 });
-const PlayTrackSchema = z.object({ uri: z.string().regex(/^spotify:track:[A-Za-z0-9]{22}$/) });
+const PlayTrackSchema = z.object({
+  uri: z.string().regex(/^spotify:track:[A-Za-z0-9]{22}$/),
+  albumUri: z.string().regex(/^spotify:album:[A-Za-z0-9]{22}$/),
+});
 
 function readCookie(name: string) {
   const header = getRequestHeader("cookie");
@@ -184,6 +187,6 @@ export const playPersonalSpotifyTrack = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     assertSpotifyPersonalIntegrationEnabled();
     assertPassengerConsoleSession();
-    await playSpotifyTrack(await getAccessToken(), data.uri);
+    await playSpotifyTrack(await getAccessToken(), data.uri, data.albumUri);
     return { ok: true };
   });
