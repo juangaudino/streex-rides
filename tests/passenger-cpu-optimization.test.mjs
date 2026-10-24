@@ -17,6 +17,7 @@ import {
 import {
   controlSpotifyPlayback,
   getSpotifyPlayback,
+  playSpotifyTrack,
   refreshSpotifyAccessToken,
   setSpotifyRepeatMode,
 } from "../src/lib/spotify.server.ts";
@@ -434,14 +435,67 @@ describe("Passenger CPU optimization safeguards", () => {
 
       globalThis.fetch = async () => new Response(null, { status: 204 });
       await expect(controlSpotifyPlayback("mock-access-token", "pause")).resolves.toBeUndefined();
-      let repeatRequest;
+      const playerCommands = [];
       globalThis.fetch = async (input, init) => {
-        repeatRequest = { url: String(input), init };
+        const url = String(input);
+        if (url.endsWith("/me/player")) {
+          return new Response(
+            JSON.stringify({
+              device: { id: "vehicle-device-id", is_active: true, name: "mock vehicle audio" },
+            }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          );
+        }
+        playerCommands.push({ url, init });
         return new Response(null, { status: 204 });
       };
       await expect(setSpotifyRepeatMode("mock-access-token", "track")).resolves.toBeUndefined();
-      expect(repeatRequest.url).toBe("https://api.spotify.com/v1/me/player/repeat?state=track");
-      expect(repeatRequest.init.method).toBe("PUT");
+      await expect(
+        playSpotifyTrack("mock-access-token", "spotify:track:1234567890123456789012"),
+      ).resolves.toBeUndefined();
+      expect(playerCommands[0].url).toBe(
+        "https://api.spotify.com/v1/me/player/repeat?state=track&device_id=vehicle-device-id",
+      );
+      expect(playerCommands[0].init.method).toBe("PUT");
+      expect(playerCommands[1].url).toBe(
+        "https://api.spotify.com/v1/me/player/play?device_id=vehicle-device-id",
+      );
+      expect(JSON.parse(playerCommands[1].init.body)).toEqual({
+        uris: ["spotify:track:1234567890123456789012"],
+      });
+
+      globalThis.fetch = async (input) => {
+        if (String(input).endsWith("/me/player")) return new Response(null, { status: 204 });
+        return new Response(JSON.stringify({ devices: [] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      };
+      await expect(
+        playSpotifyTrack("mock-access-token", "spotify:track:1234567890123456789012"),
+      ).rejects.toThrow("Spotify has no active device");
+
+      const fallbackCalls = [];
+      globalThis.fetch = async (input) => {
+        const url = String(input);
+        fallbackCalls.push(url);
+        if (url.endsWith("/me/player")) return new Response(null, { status: 204 });
+        if (url.endsWith("/me/player/devices")) {
+          return new Response(
+            JSON.stringify({ devices: [{ id: "active-car-id", is_active: true }] }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          );
+        }
+        return new Response(null, { status: 204 });
+      };
+      await expect(
+        playSpotifyTrack("mock-access-token", "spotify:track:1234567890123456789012"),
+      ).resolves.toBeUndefined();
+      expect(fallbackCalls).toEqual([
+        "https://api.spotify.com/v1/me/player",
+        "https://api.spotify.com/v1/me/player/devices",
+        "https://api.spotify.com/v1/me/player/play?device_id=active-car-id",
+      ]);
 
       globalThis.fetch = async () =>
         new Response(JSON.stringify({ error: "invalid_grant" }), {

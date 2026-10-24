@@ -22,7 +22,12 @@ type TokenResponse = {
 };
 
 type SpotifyPlaybackResponse = {
-  device?: { name?: string };
+  device?: {
+    id?: string | null;
+    name?: string;
+    is_active?: boolean;
+    is_restricted?: boolean;
+  };
   is_playing?: boolean;
   repeat_state?: "off" | "context" | "track";
   progress_ms?: number | null;
@@ -33,6 +38,15 @@ type SpotifyPlaybackResponse = {
     album?: { name?: string; images?: Array<{ url?: string }> };
     artists?: Array<{ name?: string }>;
   } | null;
+  error?: { message?: string };
+};
+
+type SpotifyDevicesResponse = {
+  devices?: Array<{
+    id?: string | null;
+    is_active?: boolean;
+    is_restricted?: boolean;
+  }>;
   error?: { message?: string };
 };
 
@@ -225,8 +239,10 @@ export async function getSpotifyPlayback(accessToken: string): Promise<PersonalS
 }
 
 export async function setSpotifyRepeatMode(accessToken: string, mode: "off" | "context" | "track") {
+  const deviceId = await getActiveSpotifyDeviceId(accessToken);
   const url = new URL(`${SPOTIFY_API}/me/player/repeat`);
   url.searchParams.set("state", mode);
+  url.searchParams.set("device_id", deviceId);
   const response = await spotifyFetch(url.toString(), {
     method: "PUT",
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -316,7 +332,13 @@ export async function getSpotifyPlaylistArtwork(
 }
 
 export async function playSpotifyTrack(accessToken: string, uri: string) {
-  const response = await spotifyFetch(`${SPOTIFY_API}/me/player/play`, {
+  // Resolve the active Connect target at the moment of the passenger action.
+  // An unscoped command can land on a different device if Spotify's active
+  // player changes while the command is in flight.
+  const deviceId = await getActiveSpotifyDeviceId(accessToken);
+  const url = new URL(`${SPOTIFY_API}/me/player/play`);
+  url.searchParams.set("device_id", deviceId);
+  const response = await spotifyFetch(url.toString(), {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -328,6 +350,44 @@ export async function playSpotifyTrack(accessToken: string, uri: string) {
 
   const result = (await response.json().catch(() => ({}))) as SpotifyPlaybackResponse;
   throw new Error(result.error?.message || "Spotify could not start the selected track.");
+}
+
+async function getActiveSpotifyDeviceId(accessToken: string): Promise<string> {
+  const headers = { Authorization: `Bearer ${accessToken}` };
+  const playbackResponse = await spotifyFetch(`${SPOTIFY_API}/me/player`, { headers });
+
+  if (playbackResponse.status !== 204) {
+    const playback = (await playbackResponse.json().catch(() => ({}))) as SpotifyPlaybackResponse;
+    if (!playbackResponse.ok) {
+      throw new Error(playback.error?.message || "Spotify playback is unavailable.");
+    }
+    if (playback.device?.is_restricted) {
+      throw new Error("The active Spotify device is not accepting playback controls.");
+    }
+    if (playback.device?.id && playback.device.is_active !== false) {
+      return playback.device.id;
+    }
+  }
+
+  // `/me/player` may return 204 while Spotify Connect is still exposing the
+  // active client. Check the available-device list before refusing the action;
+  // never transfer playback or guess a device when none is active.
+  const devicesResponse = await spotifyFetch(`${SPOTIFY_API}/me/player/devices`, { headers });
+  const devices = (await devicesResponse.json().catch(() => ({}))) as SpotifyDevicesResponse;
+  if (!devicesResponse.ok) {
+    throw new Error(devices.error?.message || "Spotify could not identify the active device.");
+  }
+
+  const activeDevices = (devices.devices ?? []).filter(
+    (device) => device.is_active && device.id && !device.is_restricted,
+  );
+  if (activeDevices.length === 1) return activeDevices[0]!.id!;
+  if (activeDevices.length > 1) {
+    throw new Error(
+      "Spotify reported multiple active devices. Try selecting the vehicle in Spotify.",
+    );
+  }
+  throw new Error("Spotify has no active device. Start playback on the vehicle, then try again.");
 }
 
 async function spotifyFetch(input: string, init: RequestInit) {
