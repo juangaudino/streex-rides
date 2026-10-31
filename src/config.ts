@@ -1,5 +1,6 @@
 // To customize this template, edit src/config.ts
 import streexLogo from "@/assets/brand/streex-rides-transparent.webp";
+import type { PassengerVisualTheme } from "@/lib/passenger-visual-theme";
 export const CONFIG = {
   // ─── BRAND ───────────────────────────────────
   brandName: "Streex Rides",
@@ -48,6 +49,8 @@ export const CONFIG = {
     // Lite-only launch palette. Switch this single value to "original" to restore the
     // existing Passenger color treatment; Complete deliberately remains Original for now.
     liteTheme: "accent" as "original" | "accent",
+    // Manual seasonal pilot. Absence preserves the existing mode-specific palette.
+    visualTheme: null as PassengerVisualTheme | null,
     idleReset: {
       // Lite beta cadence. Music remains the only published idle hero in Lite;
       // the secondary rail rotates independently beneath it.

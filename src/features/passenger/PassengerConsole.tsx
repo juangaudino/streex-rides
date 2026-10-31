@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AppConfig } from "@/config";
+import { getPassengerThemePresentation } from "@/lib/passenger-visual-theme";
+import { HauntedEditionMark, HauntedNightAtmosphere } from "./HauntedNightAtmosphere";
 import {
   ArrowLeft,
   ArrowLeftRight,
@@ -707,6 +709,12 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
     inactivitySeconds: idleInactivitySeconds,
     onReset: resetPassengerSession,
   });
+  const themePresentation = getPassengerThemePresentation(
+    consoleConfig,
+    view,
+    idleReset.promptOpen,
+  );
+  const hauntedNight = themePresentation.hauntedSurface !== null;
   const simulatedAroundYouPlace = useMemo(
     () =>
       getAroundYouTestPresets(AROUND_YOU_SEED_PLACES).find(
@@ -817,8 +825,13 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
   return (
     <div
       className="passenger-console-theme h-dvh overflow-hidden bg-[#0B0B0B] text-white"
-      data-passenger-theme={isLiteExperience ? consoleConfig.liteTheme : "original"}
+      data-passenger-theme={themePresentation.baseTheme}
+      data-passenger-edition={hauntedNight ? "haunted-night" : undefined}
+      data-haunted-surface={themePresentation.hauntedSurface ?? undefined}
     >
+      {hauntedNight && !idleReset.promptOpen ? (
+        <HauntedNightAtmosphere surface={view === "music" ? "music" : "home"} />
+      ) : null}
       <div
         className="passenger-console-shell mx-auto flex h-dvh w-full max-w-[740px] flex-col px-7 pb-4 pt-5"
         data-music-layout={
@@ -835,6 +848,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
           setLanguage={setLanguage}
           status={online ? t.online : t.offline}
         />
+        {hauntedNight && !idleReset.promptOpen ? <HauntedEditionMark language={language} /> : null}
         <main
           key={sessionKey}
           className="mt-3 min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-5 pt-5"
@@ -842,6 +856,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
           {view === "home" && (
             <HomeView
               config={config}
+              hauntedNight={hauntedNight}
               aroundYou={aroundYou}
               language={language}
               spotifyHomePollingEnabled={shouldPollSpotifyHome(view, idleReset.promptOpen)}
@@ -969,6 +984,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
       {idleReset.promptOpen && (
         <PassengerIdlePrompt
           config={config}
+          hauntedNight={hauntedNight}
           dimmed={idleScreenDimmed}
           featureRotationSeconds={idleFeatureRotationSeconds}
           fallbackTemperatureFahrenheit={consoleConfig.weather.fallbackTemperatureFahrenheit}
@@ -1011,6 +1027,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
 
 function PassengerIdlePrompt({
   config,
+  hauntedNight,
   dimmed,
   featureRotationSeconds,
   fallbackTemperatureFahrenheit,
@@ -1028,6 +1045,7 @@ function PassengerIdlePrompt({
   weatherAtmosphereOverride,
 }: {
   config: AppConfig;
+  hauntedNight: boolean;
   dimmed: boolean;
   featureRotationSeconds: number;
   fallbackTemperatureFahrenheit: number;
@@ -1065,6 +1083,9 @@ function PassengerIdlePrompt({
         logicalRest ? " passenger-idle-prompt--logical-rest" : ""
       }`}
     >
+      {hauntedNight ? (
+        <HauntedNightAtmosphere surface="idle" paused={dimmed || logicalRest} />
+      ) : null}
       <div className="absolute left-1/2 top-1/2 h-[640px] w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E6CE20]/10 blur-[130px]" />
       <div className="passenger-idle-content passenger-idle-content--music relative flex w-full max-w-5xl flex-col items-center gap-6">
         <div className="passenger-idle-header flex w-full items-center justify-between gap-5">
@@ -1073,6 +1094,7 @@ function PassengerIdlePrompt({
             alt={config.brandName}
             className="h-14 w-auto max-w-[220px] object-contain"
           />
+          {hauntedNight ? <HauntedEditionMark language={language} /> : null}
           <span className="passenger-idle-meta flex shrink-0 items-center gap-4 text-right">
             <span className="text-3xl font-black tabular-nums tracking-tight sm:text-4xl">
               {time}
@@ -1733,8 +1755,7 @@ function IdleSpotifyNowPlaying({
     );
 
   return (
-    <button
-      type="button"
+    <div
       className={className}
       style={ambientStyle(artworkPalette)}
       onClick={(event) => {
@@ -1743,7 +1764,7 @@ function IdleSpotifyNowPlaying({
       }}
     >
       {content}
-    </button>
+    </div>
   );
 }
 
@@ -1800,6 +1821,7 @@ function ConsoleHeader({
 function HomeView({
   aroundYou,
   config,
+  hauntedNight,
   language,
   spotifyHomePollingEnabled,
   onNavigate,
@@ -1817,6 +1839,7 @@ function HomeView({
 }: {
   aroundYou: import("./around-you/around-you-types").AroundYouEngineState;
   config: AppConfig;
+  hauntedNight: boolean;
   language: Language;
   spotifyHomePollingEnabled: boolean;
   onNavigate: (view: View) => void;
@@ -1891,7 +1914,7 @@ function HomeView({
     <div className="passenger-home-layout flex flex-1 flex-col gap-5">
       <section className="passenger-home-hero relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-[#E6CE20]/15 p-6">
         <img
-          src={passengerHomeAirport}
+          src={hauntedNight ? "/passenger-haunted-night/haunted-road.webp" : passengerHomeAirport}
           alt=""
           aria-hidden="true"
           className="passenger-home-hero-image absolute inset-y-0 right-0 h-full w-[58%] object-cover object-center"
@@ -1901,14 +1924,30 @@ function HomeView({
         <div className="relative">
           <div className="flex items-center justify-between gap-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#E6CE20]">
-              {t.privateRide}
+              {hauntedNight
+                ? language === "es"
+                  ? "Una noche. Un viaje diferente."
+                  : "One night. A different kind of ride."
+                : t.privateRide}
             </p>
             <p className="shrink-0 text-[10px] font-semibold text-white/45">
               {t.hostedBy} {config.ownerName}
             </p>
           </div>
-          <h1 className="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">{t.welcome}</h1>
-          <p className="mt-2 text-base text-white/60">{t.subtitle}</p>
+          <h1 className="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">
+            {hauntedNight
+              ? language === "es"
+                ? "Tu viaje. Al caer la noche."
+                : "Your ride. After dark."
+              : t.welcome}
+          </h1>
+          <p className="mt-2 text-base text-white/60">
+            {hauntedNight
+              ? language === "es"
+                ? "Elige tu música. Disfruta lo inesperado."
+                : "Pick your soundtrack. Enjoy the unexpected."
+              : t.subtitle}
+          </p>
           <p className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-[#E6CE20]">
             <Sparkles className="h-3.5 w-3.5" />
             {t.exploreCue}
@@ -2618,6 +2657,7 @@ const unavailableStorage: Pick<Storage, "getItem" | "setItem" | "removeItem"> = 
 type SpotifySearchTrack = {
   id: string;
   uri: string;
+  albumUri: string | null;
   title: string;
   artist: string;
   album: string | null;

@@ -43,6 +43,8 @@ import { CONFIG, type AppConfig } from "@/config";
 import logo from "@/assets/brand/streex-rides-transparent.webp";
 import { useAdminTheme } from "./admin/useAdminTheme";
 import { AdminThemeControl } from "./admin/AdminThemeControl";
+import { PassengerVisualThemeControl } from "./admin/PassengerVisualThemeControl";
+import { getPassengerVisualTheme, type PassengerVisualTheme } from "@/lib/passenger-visual-theme";
 import { AdminCalendar, type CalendarGoogleBusyItem } from "./admin/AdminCalendar";
 import { AdminCalendarEventSheet, type CalendarSheetItem } from "./admin/AdminCalendarEventSheet";
 import { GoogleCalendarConnectionCard } from "./admin/GoogleCalendarConnectionCard";
@@ -1819,6 +1821,9 @@ function AdminConfig({ adminKey, tenantId }: { adminKey: string; tenantId: strin
   const [passengerExperienceMode, setPassengerExperienceMode] = useState<PassengerExperienceMode>(
     CONFIG.passengerConsole.experienceMode,
   );
+  const [passengerVisualTheme, setPassengerVisualTheme] = useState<PassengerVisualTheme | null>(
+    null,
+  );
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -1869,6 +1874,7 @@ function AdminConfig({ adminKey, tenantId }: { adminKey: string; tenantId: strin
       setAreasText(result.config.areas.join("\n"));
       setSeo({ title: result.config.seoTitle, description: result.config.seoDescription });
       setPassengerExperienceMode(result.config.passengerConsole.experienceMode);
+      setPassengerVisualTheme(result.config.passengerConsole.visualTheme ?? null);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Failed to load site config.");
     } finally {
@@ -1915,6 +1921,7 @@ function AdminConfig({ adminKey, tenantId }: { adminKey: string; tenantId: strin
             seoDescription: seo.description,
             passengerConsole: {
               experienceMode: passengerExperienceMode,
+              visualTheme: passengerVisualTheme ?? undefined,
             },
           },
         },
@@ -1993,6 +2000,15 @@ function AdminConfig({ adminKey, tenantId }: { adminKey: string; tenantId: strin
           </div>
         </div>
       </section>
+
+      <PassengerVisualThemeControl
+        value={getPassengerVisualTheme({
+          ...CONFIG.passengerConsole,
+          experienceMode: passengerExperienceMode,
+          visualTheme: passengerVisualTheme,
+        })}
+        onChange={setPassengerVisualTheme}
+      />
 
       {loading && <p className="text-sm text-white/50">Loading config...</p>}
 

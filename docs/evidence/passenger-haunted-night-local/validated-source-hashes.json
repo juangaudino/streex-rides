@@ -1,0 +1,47 @@
+[
+  {
+    "file": "src/config.ts",
+    "sha256": "c5e73401fbb6a391fb0828b03a6980944eed895d8c7976647a297506344aa36c",
+    "validatedCopyMatches": true
+  },
+  {
+    "file": "src/lib/site-config.ts",
+    "sha256": "dfc5d1b072ee5123aeeaac9b7506dcec97e089fc65a5f7c23fe13decba469398",
+    "validatedCopyMatches": true
+  },
+  {
+    "file": "src/lib/passenger-visual-theme.ts",
+    "sha256": "f146554224a254d5b2cffb05838bb14c27a97d6fb1fd610d23f2673d5a27817a",
+    "validatedCopyMatches": true
+  },
+  {
+    "file": "src/features/passenger/PassengerConsole.tsx",
+    "sha256": "07bf5a8680fde4a708e772dcbe7bd3ddc17d9bd9c3b8ed5f1421ab4c457a96da",
+    "validatedCopyMatches": true
+  },
+  {
+    "file": "src/features/passenger/HauntedNightAtmosphere.tsx",
+    "sha256": "ecb661e088228a2cbd2938db1bf1868803788ef40e45c30fac80c4b98d241bd1",
+    "validatedCopyMatches": true
+  },
+  {
+    "file": "src/features/passenger/haunted-night.css",
+    "sha256": "a1eb1e720b4c17ad65bd74a2cad27ef9c1a6984e2dde6fe40cafaeb175757fef",
+    "validatedCopyMatches": true
+  },
+  {
+    "file": "src/components/streex/AdminPanel.tsx",
+    "sha256": "dd6494b0db4ce063e1684629f0f411b53e85d2943b235644b69f7e7df565578e",
+    "validatedCopyMatches": true
+  },
+  {
+    "file": "src/components/streex/admin/PassengerVisualThemeControl.tsx",
+    "sha256": "80709bfe99f3f8a5006a09e576de842436d8c2acecfe7fa0b6944f6f6ade218f",
+    "validatedCopyMatches": true
+  },
+  {
+    "file": "tests/passenger-visual-theme.test.mjs",
+    "sha256": "f587847ddd2fff9dfd2f11c23c5e45cf3cbc80d36934b639278d22c7a5564026",
+    "validatedCopyMatches": true
+  }
+]

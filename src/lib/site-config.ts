@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CONFIG, type AppConfig } from "@/config";
+import { PASSENGER_VISUAL_THEMES } from "./passenger-visual-theme";
 
 export const SITE_CONFIG_KEY = "site_config_v2";
 
@@ -40,6 +41,8 @@ const GalleryImageSchema = z.object({
 const PassengerConsoleOverrideSchema = z
   .object({
     experienceMode: z.enum(["lite", "complete"]).optional(),
+    // A malformed seasonal setting must never discard the rest of a saved config.
+    visualTheme: z.enum(PASSENGER_VISUAL_THEMES).optional().catch(undefined),
   })
   .strict();
 
@@ -130,6 +133,7 @@ export function mergeSiteConfig(
     passengerConsole: {
       ...base.passengerConsole,
       ...(override.passengerConsole ?? {}),
+      visualTheme: override.passengerConsole?.visualTheme ?? base.passengerConsole.visualTheme,
     },
   };
 

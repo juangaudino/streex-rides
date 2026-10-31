@@ -1,0 +1,375 @@
+{
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "checks": [
+    {
+      "name": "Accent baseline",
+      "result": {
+        "decorationCount": 0,
+        "edition": null,
+        "overflow": false,
+        "styles": [
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-console-theme",
+            "shadow": "none"
+          },
+          {
+            "background": "linear-gradient(to right bottom, oklab(0.999994 0.0000455678 0.0000200868 / 0.08) 0%, oklab(0.999994 0.0000455678 0.0000200868 / 0.04) 50%, oklab(0.845855 -0.0308165 0.167465 / 0.15) 100%)",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-home-hero",
+            "shadow": "none"
+          },
+          {
+            "background": "linear-gradient(to right bottom, oklab(0.999994 0.0000455678 0.0000200868 / 0.075) 0%, oklab(0.999994 0.0000455678 0.0000200868 / 0.04) 50%, oklab(0.845855 -0.0308165 0.167465 / 0.09) 100%)",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-home-music > button",
+            "shadow": "none"
+          },
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-console-header",
+            "shadow": "none"
+          },
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": "nav[aria-label=\"Passenger console\"]",
+            "shadow": "none"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Admin save/reload Halloween",
+      "passed": true
+    },
+    {
+      "name": "Home frame sample (desktop IAB, 5 seconds)",
+      "result": {
+        "frames": 300,
+        "meanMs": 16.666666666666668,
+        "p95Ms": 18.199999999999818,
+        "longFrames": 0
+      }
+    },
+    {
+      "name": "Pause UI and mocked command",
+      "passed": true
+    },
+    {
+      "name": "Resume UI and mocked command",
+      "passed": true
+    },
+    {
+      "name": "Search/select updates track with mocked Spotify; handlers unchanged",
+      "passed": true
+    },
+    {
+      "check": "Idle dim and first-touch wake",
+      "passed": true,
+      "idleFrameSample": {
+        "frames": 300,
+        "meanMs": 16.667,
+        "p95Ms": 17.7,
+        "longFrames": 0
+      },
+      "consoleWarningsOrErrors": []
+    },
+    {
+      "check": "Games Accent versus Halloween",
+      "markupAndMainStyleEqual": true,
+      "screenshotBytesEqual": true,
+      "presentation": {
+        "decorationCount": 0,
+        "edition": null,
+        "overflow": false,
+        "styles": [
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-console-theme",
+            "shadow": "none"
+          },
+          {
+            "selector": ".passenger-home-hero"
+          },
+          {
+            "selector": ".passenger-home-music > button"
+          },
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-console-header",
+            "shadow": "none"
+          },
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": "nav[aria-label=\"Passenger console\"]",
+            "shadow": "none"
+          }
+        ]
+      }
+    },
+    {
+      "check": "Admin-save Accent then reload Passenger restores baseline",
+      "passed": true,
+      "presentation": {
+        "decorationCount": 0,
+        "edition": null,
+        "overflow": false,
+        "styles": [
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-console-theme",
+            "shadow": "none"
+          },
+          {
+            "background": "linear-gradient(to right bottom, oklab(0.999994 0.0000455678 0.0000200868 / 0.08) 0%, oklab(0.999994 0.0000455678 0.0000200868 / 0.04) 50%, oklab(0.845855 -0.0308165 0.167465 / 0.15) 100%)",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-home-hero",
+            "shadow": "none"
+          },
+          {
+            "background": "linear-gradient(to right bottom, oklab(0.999994 0.0000455678 0.0000200868 / 0.075) 0%, oklab(0.999994 0.0000455678 0.0000200868 / 0.04) 50%, oklab(0.845855 -0.0308165 0.167465 / 0.09) 100%)",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-home-music > button",
+            "shadow": "none"
+          },
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-console-header",
+            "shadow": "none"
+          },
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": "nav[aria-label=\"Passenger console\"]",
+            "shadow": "none"
+          }
+        ]
+      }
+    },
+    {
+      "check": "Admin saved Complete + Halloween independently and reload displayed Halloween",
+      "presentation": {
+        "decorationCount": 2,
+        "edition": "haunted-night",
+        "overflow": false,
+        "styles": [
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": ".passenger-console-theme",
+            "shadow": "none"
+          },
+          {
+            "background": "linear-gradient(108deg, rgba(15, 8, 26, 0.94), rgba(25, 12, 38, 0.74) 58%, rgba(27, 14, 36, 0.24))",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": ".passenger-home-hero",
+            "shadow": "rgba(244, 220, 255, 0.08) 0px 1px 0px 0px inset, rgba(227, 127, 64, 0.08) 0px -1px 0px 0px inset, rgba(3, 1, 7, 0.3) 0px 24px 65px 0px"
+          },
+          {
+            "background": "linear-gradient(115deg, rgba(34, 16, 33, 0.93), rgba(24, 12, 37, 0.82))",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": ".passenger-home-music > button",
+            "shadow": "rgba(255, 213, 176, 0.08) 0px 1px 0px 0px inset, rgba(111, 54, 143, 0.1) 0px 0px 38px 0px"
+          },
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": ".passenger-console-header",
+            "shadow": "none"
+          },
+          {
+            "background": "linear-gradient(110deg, rgba(20, 12, 31, 0.96), rgba(31, 17, 37, 0.91))",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": "nav[aria-label=\"Passenger console\"]",
+            "shadow": "rgba(240, 209, 255, 0.06) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 15px 40px 0px"
+          }
+        ]
+      }
+    },
+    {
+      "check": "Admin Original restores Complete baseline",
+      "presentation": {
+        "decorationCount": 0,
+        "edition": null,
+        "overflow": false,
+        "styles": [
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-console-theme",
+            "shadow": "none"
+          },
+          {
+            "background": "linear-gradient(to right bottom, oklab(0.999994 0.0000455678 0.0000200868 / 0.08) 0%, oklab(0.999994 0.0000455678 0.0000200868 / 0.04) 50%, oklab(0.845855 -0.0308165 0.167465 / 0.15) 100%)",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-home-hero",
+            "shadow": "none"
+          },
+          {
+            "background": "linear-gradient(to right bottom, oklab(0.999994 0.0000455678 0.0000200868 / 0.075) 0%, oklab(0.999994 0.0000455678 0.0000200868 / 0.04) 50%, oklab(0.845855 -0.0308165 0.167465 / 0.09) 100%)",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-home-music > button",
+            "shadow": "none"
+          },
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": ".passenger-console-header",
+            "shadow": "none"
+          },
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "",
+            "selector": "nav[aria-label=\"Passenger console\"]",
+            "shadow": "none"
+          }
+        ]
+      }
+    },
+    {
+      "check": "Exact reduced-motion CSS declarations executed via local preference fixture",
+      "passed": true,
+      "animations": "none",
+      "batDisplay": "none",
+      "nativeOsPreferenceEmulated": false
+    },
+    {
+      "check": "Horizontal 1024x640 Home",
+      "horizontalOverflow": false,
+      "note": "Existing compact layout retained; primary review is 1280x800"
+    },
+    {
+      "check": "Final local browser console",
+      "warnings": [],
+      "errors": [],
+      "mockedServices": true
+    },
+    {
+      "check": "Idle content fits 1280x800",
+      "content": {
+        "left": 32,
+        "right": 1248,
+        "top": 32,
+        "bottom": 784
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "check": "Complete Music and Idle rendered",
+      "music": {
+        "decorationCount": 2,
+        "edition": "haunted-night",
+        "overflow": false,
+        "styles": [
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": ".passenger-console-theme",
+            "shadow": "none"
+          },
+          {
+            "selector": ".passenger-home-hero"
+          },
+          {
+            "selector": ".passenger-home-music > button"
+          },
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": ".passenger-console-header",
+            "shadow": "none"
+          },
+          {
+            "background": "linear-gradient(110deg, rgba(20, 12, 31, 0.96), rgba(31, 17, 37, 0.91))",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": "nav[aria-label=\"Passenger console\"]",
+            "shadow": "rgba(240, 209, 255, 0.06) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 15px 40px 0px"
+          }
+        ]
+      },
+      "idle": {
+        "decorationCount": 2,
+        "edition": "haunted-night",
+        "overflow": false,
+        "styles": [
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": ".passenger-console-theme",
+            "shadow": "none"
+          },
+          {
+            "background": "linear-gradient(108deg, rgba(15, 8, 26, 0.94), rgba(25, 12, 38, 0.74) 58%, rgba(27, 14, 36, 0.24))",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": ".passenger-home-hero",
+            "shadow": "rgba(244, 220, 255, 0.08) 0px 1px 0px 0px inset, rgba(227, 127, 64, 0.08) 0px -1px 0px 0px inset, rgba(3, 1, 7, 0.3) 0px 24px 65px 0px"
+          },
+          {
+            "background": "linear-gradient(115deg, rgba(34, 16, 33, 0.93), rgba(24, 12, 37, 0.82))",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": ".passenger-home-music > button",
+            "shadow": "rgba(255, 213, 176, 0.08) 0px 1px 0px 0px inset, rgba(111, 54, 143, 0.1) 0px 0px 38px 0px"
+          },
+          {
+            "background": "none",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": ".passenger-console-header",
+            "shadow": "none"
+          },
+          {
+            "background": "linear-gradient(110deg, rgba(20, 12, 31, 0.96), rgba(31, 17, 37, 0.91))",
+            "color": "rgb(255, 255, 255)",
+            "hauntedToken": "#ffb77f",
+            "selector": "nav[aria-label=\"Passenger console\"]",
+            "shadow": "rgba(240, 209, 255, 0.06) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 15px 40px 0px"
+          }
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    "External services and Admin authentication use local fixtures.",
+    "Real Spotify audio and physical tablet hardware are not exercised."
+  ]
+}
