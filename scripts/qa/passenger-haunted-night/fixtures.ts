@@ -51,9 +51,11 @@ export function prepareLocalFixture(params: URLSearchParams) {
     };
     localStorage.setItem(storageKey, JSON.stringify(SiteConfigOverrideSchema.parse(override)));
   }
+  const forcedIdleAgeMs =
+    Math.max(300, readLocalConfig().passengerConsole.idleReset.inactivitySeconds) * 1000 + 5000;
   localStorage.setItem(
     "streex-passenger-last-activity-v1",
-    String(Date.now() - (params.get("surface") === "idle" ? 95000 : 0)),
+    String(Date.now() - (params.get("surface") === "idle" ? forcedIdleAgeMs : 0)),
   );
 }
 

@@ -103,3 +103,9 @@ Validation: existing 107 tests/4,534 assertions passed; TypeScript/build, focuse
 - [Idle — 1280 × 800](evidence/passenger-idle-home-entry/idle-halloween-1280x800.jpg)
 - [Compact — 1024 × 640](evidence/passenger-idle-home-entry/idle-halloween-1024x640.jpg)
 - [Browser QA](evidence/passenger-idle-home-entry/qa-results.json)
+
+## Approved publication follow-up — five-minute seasonal inactivity
+
+The owner approved publishing the idle-to-Home correction and highlighted game entry, together with a longer wait for tonight. While Halloween is manually selected, normal Passenger enters Idle after **300 seconds of inactivity**. Every real interaction still resets the timer; returning to Original/Accent restores the configured normal duration (currently 90 seconds). Explicit test mode retains 15 seconds; Glance rotation and the one-minute game round are unchanged. The application does not remain permanently in Games, and no date scheduler/configuration/database update is introduced. This is an explicit owner-approved seasonal timing exception; B01 remains deferred.
+
+Release scope includes local `1ce71bd` plus this timing adjustment. The owner authorized commit, push and Production deployment after reviewing the screenshot. Previous stable production is `04013f6`, Vercel reference `8vfsH3QR5oWARrLLzh7gAtp9SFKY`, immutable URL `streex-riders-o7tkygrs5-juangaudinos-projects.vercel.app`. Existing Git integration deploys main to `streex-riders`; no credentials or schema changes are part of the release.

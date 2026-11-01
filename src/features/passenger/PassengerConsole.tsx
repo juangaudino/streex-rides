@@ -697,7 +697,12 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
   const isLiteExperience = consoleConfig.experienceMode === "lite";
   const analytics = usePassengerAnalytics(passengerAnalyticsScreen(view));
   const aroundYouEnabled = consoleConfig.aroundYou.enabled || aroundYouTestMode;
-  const idleInactivitySeconds = passengerTestMode ? 15 : consoleConfig.idleReset.inactivitySeconds;
+  const halloweenSelected = getPassengerSeasonalGame(consoleConfig) !== null;
+  const idleInactivitySeconds = passengerTestMode
+    ? 15
+    : halloweenSelected
+      ? 5 * 60
+      : consoleConfig.idleReset.inactivitySeconds;
   const idleFeatureRotationSeconds = passengerTestMode
     ? 10
     : consoleConfig.idleReset.featureRotationSeconds;
@@ -719,7 +724,6 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
     idleReset.promptOpen,
   );
   const hauntedNight = themePresentation.hauntedSurface !== null;
-  const halloweenSelected = getPassengerSeasonalGame(consoleConfig) !== null;
   const simulatedAroundYouPlace = useMemo(
     () =>
       getAroundYouTestPresets(AROUND_YOU_SEED_PLACES).find(
