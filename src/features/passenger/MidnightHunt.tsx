@@ -91,6 +91,14 @@ const words = {
   },
 };
 
+import {
+  readHuntRecords,
+  saveHuntRecord,
+  formatHuntTime,
+  type HuntRecord,
+} from "./midnight-records";
+let previousHuntLayout: ReturnType<typeof createHuntSpirits> = [];
+
 function SpiritMark() {
   return (
     <svg viewBox="0 0 32 44" aria-hidden="true" className="midnight-spirit-art">
@@ -116,6 +124,19 @@ export function MidnightHunt({
   onMusic: () => void;
 }) {
   const t = words[language];
+  const es = language === "es";
+  const [records, setRecords] = useState<HuntRecord[]>([]);
+  const [nickname, setNickname] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const savedRound = useRef(0);
+  useEffect(() => {
+    try {
+      setRecords(readHuntRecords(window.localStorage));
+    } catch {
+      /* Storage unavailable: gameplay remains available. */
+    }
+  }, []);
   const [state, dispatch] = useReducer(huntReducer, undefined, createHuntState);
   const [hidden, setHidden] = useState(() => typeof document !== "undefined" && document.hidden);
   const scene = useRef<HTMLElement>(null);
@@ -161,7 +182,11 @@ export function MidnightHunt({
     pointerOrigin.current = null;
     scene.current?.style.setProperty("--lantern-x", "-1000px");
     scene.current?.style.setProperty("--lantern-y", "-1000px");
-    dispatch({ type: "start", spirits: createHuntSpirits(), now: performance.now() });
+    previousHuntLayout = createHuntSpirits(Math.random, previousHuntLayout);
+    setNickname("");
+    setSaved(false);
+    setSaveError(false);
+    dispatch({ type: "start", spirits: previousHuntLayout, now: performance.now() });
     onStart();
   };
   const syncDiscovery = (now: number) => {
@@ -443,11 +468,64 @@ export function MidnightHunt({
                 {t.found}
                 {won && (
                   <small>
-                    {seconds} {t.left}
+                    {formatHuntTime(60_000 - state.remainingMs)} ·{" "}
+                    {es ? "tiempo total" : "finish time"}
                   </small>
                 )}
               </span>
             </div>
+            {won && !saved && (
+              <form
+                className="midnight-record-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (savedRound.current === state.round) return;
+                  let next: HuntRecord[] | null = null;
+                  try {
+                    next = saveHuntRecord(window.localStorage, {
+                      name: nickname.trim() || (es ? "Invitado" : "Guest"),
+                      elapsedMs: Math.round(60_000 - state.remainingMs),
+                    });
+                  } catch {
+                    /* Do not block replay. */
+                  }
+                  if (next) {
+                    savedRound.current = state.round;
+                    setRecords(next);
+                    setSaved(true);
+                    setSaveError(false);
+                  } else setSaveError(true);
+                }}
+              >
+                <label htmlFor="midnight-nickname">
+                  {es ? "Tu apodo (opcional)" : "Your nickname (optional)"}
+                </label>
+                <div>
+                  <input
+                    id="midnight-nickname"
+                    value={nickname}
+                    maxLength={20}
+                    autoComplete="off"
+                    onChange={(event) => setNickname(event.target.value)}
+                    placeholder={es ? "Invitado" : "Guest"}
+                  />
+                  <button className="midnight-primary" type="submit">
+                    {es ? "Guardar tiempo" : "Save time"}
+                  </button>
+                </div>
+              </form>
+            )}
+            <p role="status" className="midnight-save-status">
+              {saved
+                ? es
+                  ? "Tiempo guardado en esta tablet."
+                  : "Time saved on this tablet."
+                : saveError
+                  ? es
+                    ? "No se pudo guardar aquí. Puedes seguir jugando."
+                    : "Storage unavailable. You can keep playing."
+                  : ""}
+            </p>
             <div className="midnight-result-actions">
               <button className="midnight-primary" onClick={start}>
                 <RotateCcw size={18} />
@@ -459,6 +537,33 @@ export function MidnightHunt({
               </button>
             </div>
           </div>
+          <aside
+            className="midnight-leaderboard"
+            aria-label={es ? "Mejores tiempos" : "Best times"}
+          >
+            <span className="midnight-eyebrow">MIDNIGHT KEEPERS · TOP 10</span>
+            <h3>{es ? "Los más rápidos de la noche" : "Fastest of the night"}</h3>
+            <p>
+              {es
+                ? "Récords de esta tablet · Menos tiempo gana"
+                : "This tablet’s records · Fastest time wins"}
+            </p>
+            {records.length ? (
+              <ol>
+                {records.map((record, index) => (
+                  <li key={`${index}-${record.elapsedMs}`}>
+                    <span>{index + 1}</span>
+                    <strong>{record.name}</strong>
+                    <time>{formatHuntTime(record.elapsedMs)}</time>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p>
+                {es ? "Sé el primero en devolver la luz." : "Be the first to bring back the light."}
+              </p>
+            )}
+          </aside>
         </div>
       )}
     </section>

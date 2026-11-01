@@ -133,3 +133,13 @@ Evidence: [before light](evidence/passenger-lantern-discovery/before-beam.jpg), 
 Release baseline/rollback reference: production `0f8fdc1`, Vercel reference `9H7cxoCdMBb41y19gX9qmyBLQGLc`, immutable deployment `streex-riders-n1hk910sw-juangaudinos-projects.vercel.app`, verified through GitHub's successful Production deployment. The owner explicitly authorized commit, push and deploy of this correction. No production setting, credential or database migration is required.
 
 Desktop-only five-second gameplay frame sample (including native pointer drags): 301 frames, mean 16.67 ms, p95 18.1 ms, no intervals over 50 ms. This is not physical tablet performance evidence. Final inspected local console had no errors/warnings.
+
+## October 31 — approved local leaderboard
+
+Added a device-only Top 10 of successful finish times, ranked by actual elapsed milliseconds (pauses excluded). Optional nickname, 20 characters; empty names become Guest/Invitado. React renders names as text. No names or record times are sent to analytics, server functions or Supabase. Storage failures leave replay usable and show a recoverable message. Only one save per round. Records persist in localStorage on the same origin/browser; clearing browser data removes them. No automatic date reset or admin maintenance.
+
+New layout generation avoids immediately repeating the same five hiding places while the page remains loaded, including leaving/re-entering Games. Reload starts a fresh random sequence. Positions remain safe predefined hiding places; IDs do not determine layout equality.
+
+Validation: 119 tests, 4,573 assertions; TypeScript, production build, focused ESLint, diff check. Automated coverage includes repeated-layout fallback with identical random input, top-ten ranking/cap, persistence, malformed/unavailable storage, name limits and paused-time accounting. Real local browser QA with external services mocked: two successful rounds, named and anonymous saves, record restored after reload, no console warnings/errors. Landscape 1280×720 screenshot: [local Top 10](evidence/passenger-local-records/top-ten.jpg). Physical Fully keyboard/touch remains owner QA after release. Spotify logic and existing five-minute Halloween idle unchanged.
+
+Publication authorized by owner. Previous stable rollback reference is commit `dcafddebb6a483a1afbeefa61905f0bfeca0be5b` (Production deployment reference `3e4XVsTSwreUhSSmmyiMZLkEnik5`). Use existing Git main integration/project streex-riders; no backend or configuration changes.

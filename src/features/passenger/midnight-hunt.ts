@@ -38,12 +38,18 @@ export function createHuntState(): HuntState {
 }
 
 /** A bounded shuffle keeps targets separated, inside the scene and away from the HUD. */
-export function createHuntSpirits(random = Math.random): HuntSpirit[] {
+export function createHuntSpirits(random = Math.random, previous: HuntSpirit[] = []): HuntSpirit[] {
   const places = [...hidingPlaces];
   for (let i = places.length - 1; i > 0; i--) {
     const j = Math.min(i, Math.max(0, Math.floor(random() * (i + 1))));
     [places[i], places[j]] = [places[j], places[i]];
   }
+  const same =
+    previous.length === MIDNIGHT_HUNT_SPIRITS &&
+    places
+      .slice(0, MIDNIGHT_HUNT_SPIRITS)
+      .every(([x, y]) => previous.some((p) => p.x === x && p.y === y));
+  if (same) [places[0], places[MIDNIGHT_HUNT_SPIRITS]] = [places[MIDNIGHT_HUNT_SPIRITS], places[0]];
   return places.slice(0, MIDNIGHT_HUNT_SPIRITS).map(([x, y], id) => ({ id, x, y }));
 }
 

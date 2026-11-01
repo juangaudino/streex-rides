@@ -587,3 +587,102 @@
     opacity: 1;
   }
 }
+
+/* Device-only finish screen: scroll within the scene, never expand the tablet layout. */
+.midnight-finale {
+  overflow: auto;
+  gap: 3%;
+  align-items: safe center;
+}
+.midnight-finale > .midnight-result {
+  flex: 1;
+  min-width: 0;
+  padding: 22px;
+}
+.midnight-finale .midnight-result h2 {
+  font-size: clamp(28px, 3vw, 46px);
+}
+.midnight-record-form {
+  margin-bottom: 8px;
+}
+.midnight-record-form label {
+  display: block;
+  font-size: 13px;
+  color: #ecd7f4;
+  margin-bottom: 8px;
+}
+.midnight-record-form > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.midnight-record-form input {
+  width: 160px;
+  min-height: 48px;
+  border: 1px solid #d8b6ee66;
+  border-radius: 12px;
+  background: #160d24;
+  color: white;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+.midnight-record-form input:focus-visible {
+  outline: 2px solid #ffd08c;
+}
+.midnight-finale .midnight-save-status {
+  font-size: 12px;
+  margin: 6px 0 12px;
+}
+.midnight-leaderboard {
+  flex: 1;
+  min-width: 240px;
+  max-width: 430px;
+  padding: 24px;
+  border: 1px solid #e9af7655;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #251331ed, #110d20ed);
+  box-shadow: 0 16px 60px #0006;
+}
+.midnight-leaderboard h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffdcaa;
+  margin-top: 10px;
+}
+.midnight-leaderboard p {
+  font-size: 12px;
+  color: #d5bddc;
+  margin: 8px 0 16px;
+}
+.midnight-leaderboard ol {
+  max-height: 250px;
+  overflow: auto;
+}
+.midnight-leaderboard li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid #ffffff12;
+  font-size: 14px;
+  color: #ffdcaa;
+}
+.midnight-leaderboard li strong {
+  flex: 1;
+  color: #f9edf9;
+  overflow-wrap: anywhere;
+}
+.midnight-leaderboard li time {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 700px) {
+  .midnight-finale {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .midnight-leaderboard {
+    max-width: none;
+    margin-bottom: 20px;
+  }
+}
