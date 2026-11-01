@@ -1,0 +1,43 @@
+{
+  "homeExit": true,
+  "directGame": true,
+  "firstTapOnlyWakes": true,
+  "homeAfterDim": "home",
+  "backgroundExit": "home",
+  "accent": {
+    "view": "home",
+    "seasonalCard": 0
+  },
+  "original": {
+    "view": "home",
+    "seasonalCard": 0
+  },
+  "compact": {
+    "card": {
+      "bottom": 590.578125,
+      "height": 57.578125,
+      "left": 53,
+      "right": 228.734375,
+      "top": 533,
+      "width": 175.734375,
+      "x": 53,
+      "y": 533
+    },
+    "explore": {
+      "bottom": 616,
+      "height": 116,
+      "left": 32,
+      "right": 992,
+      "top": 500,
+      "width": 960,
+      "x": 32,
+      "y": 500
+    },
+    "overflow": false,
+    "viewport": [
+      1024,
+      640
+    ]
+  },
+  "console": []
+}

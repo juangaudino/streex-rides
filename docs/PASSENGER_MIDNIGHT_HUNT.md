@@ -89,3 +89,17 @@ Actual screenshots of the implemented components with artificial local music/wea
 - [Structured browser QA](evidence/passenger-midnight-hunt-local/browser-qa-results.json)
 
 Ready for the owner's visual review. Publication is **not performed**. If later authorized, use the existing production Git/Vercel project and preserve this feature's theme-only reversal. After publication, owner QA on the stationary tablet must verify touch/drag, readability, a full round, music continuity, dim/wake and Original/Accent restoration. No new infrastructure is required.
+
+## Follow-up — idle exit and discovery (local review candidate)
+
+The owner reported that the generic Idle exit landed in STREEX. Inspection confirmed that the large “Tap to explore” button called `onExploreStreex`. A separate `onExploreHome` callback now resumes Idle and opens Home; normal bright background taps also explicitly select Home. Dedicated Music, Games, Services and STREEX links retain their destinations. The first dimmed tap still only restores brightness.
+
+While Halloween is selected, the existing Idle Games tile is wider, uses the already-shipped scene as its background, and shows “Midnight Hunt / Tap to play · 60 sec” (Spanish copy included) with a copper border and moon icon. Its position and surrounding Music/Glance/phone QR structure remain intact. Original/Accent keep their normal Games tile. No animation, request interval, backend or game logic was changed.
+
+Branch: `fix/passenger-idle-home-hunt-entry`, based on published `04013f6`. Local review only; no push, merge or deployment for this follow-up.
+
+Validation: existing 107 tests/4,534 assertions passed; TypeScript/build, focused ESLint and diff check passed in the existing credential-free validation copy. Actual local browser checks confirmed the generic exit and bright background tap open Home, the highlighted tile opens Midnight Hunt directly, dim/wake semantics are retained, and generic exit also opens Home under Original/Accent with no seasonal tile. No browser console errors/warnings. At 1280 × 800 the full composition was inspected; at 1024 × 640 the new tile fits (175.7 × 57.6) with no horizontal document overflow. Existing compact-height clipping in the upper Music/phone areas was observed and was not changed by this narrowly scoped patch. Physical Fully Kiosk testing remains pending.
+
+- [Idle — 1280 × 800](evidence/passenger-idle-home-entry/idle-halloween-1280x800.jpg)
+- [Compact — 1024 × 640](evidence/passenger-idle-home-entry/idle-halloween-1024x640.jpg)
+- [Browser QA](evidence/passenger-idle-home-entry/qa-results.json)

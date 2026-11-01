@@ -633,3 +633,60 @@
     animation: none !important;
   }
 }
+
+/* Seasonal discovery stays inside the existing Explore footprint. */
+.passenger-console-theme[data-passenger-edition="haunted-night"] .haunted-game-invitation {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  flex-grow: 1.75;
+  border-color: #ffcb8eb3;
+  background:
+    linear-gradient(95deg, #29152df5 10%, #29152d99 70%, #29152d33),
+    url("/passenger-haunted-night/midnight-gate.webp") 74% 48% / cover;
+  box-shadow:
+    inset 0 1px #ffe5b12e,
+    0 0 18px #ffaf6520;
+}
+.passenger-console-theme[data-passenger-edition="haunted-night"] .haunted-game-invitation:hover {
+  border-color: #ffe2ae;
+  box-shadow:
+    inset 0 1px #ffe5b14d,
+    0 0 22px #ffaf653d;
+}
+.passenger-console-theme[data-passenger-edition="haunted-night"]
+  .haunted-game-invitation
+  .passenger-idle-explore-icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  border: 1px solid #ffcf9855;
+  background: #ffb56e1a;
+  color: #ffdfb0;
+}
+.passenger-console-theme[data-passenger-edition="haunted-night"]
+  .haunted-game-invitation
+  > span:last-child
+  > span:first-child {
+  color: #ffe0af;
+  font-weight: 800;
+  font-size: 0.88rem;
+}
+.passenger-console-theme[data-passenger-edition="haunted-night"]
+  .haunted-game-invitation
+  > span:last-child
+  > span:last-child {
+  color: #f9dfc6d9;
+  font-size: 0.6rem;
+  display: block;
+}
+@media (max-width: 1100px) {
+  .passenger-console-theme[data-passenger-edition="haunted-night"] .haunted-game-invitation {
+    flex-grow: 1.6;
+  }
+  .passenger-console-theme[data-passenger-edition="haunted-night"]
+    .haunted-game-invitation
+    .passenger-idle-explore-icon {
+    display: none;
+  }
+}

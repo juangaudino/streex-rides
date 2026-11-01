@@ -1007,6 +1007,10 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
             idleReset.resume();
             openGame(quickGame, "idle");
           }}
+          onExploreHome={() => {
+            idleReset.resume();
+            navigateTo("home");
+          }}
           onExploreStreex={() => {
             idleReset.resume();
             navigateTo("streex");
@@ -1023,7 +1027,10 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
           onWakeOrResume={() => {
             const result = resolveIdleScreenTap(idleScreenDimmed);
             setIdleScreenDimmed(result.dimmed);
-            if (result.resume) idleReset.resume();
+            if (result.resume) {
+              idleReset.resume();
+              navigateTo("home");
+            }
           }}
           weather={weather.snapshot}
           weatherCity={weather.city}
@@ -1043,6 +1050,7 @@ function PassengerIdlePrompt({
   language,
   logicalRest,
   onExploreGame,
+  onExploreHome,
   onExploreMusic,
   onExploreServices,
   onExploreStreex,
@@ -1061,6 +1069,7 @@ function PassengerIdlePrompt({
   language: Language;
   logicalRest: boolean;
   onExploreGame: () => void;
+  onExploreHome: () => void;
   onExploreMusic: () => void;
   onExploreServices: () => void;
   onExploreStreex: () => void;
@@ -1146,6 +1155,7 @@ function PassengerIdlePrompt({
           hauntedNight={hauntedNight}
           language={language}
           onExploreGame={onExploreGame}
+          onExploreHome={onExploreHome}
           onExploreMusic={onExploreMusic}
           onExploreServices={onExploreServices}
           onExploreStreex={onExploreStreex}
@@ -1422,6 +1432,7 @@ function IdleExplorePanel({
   hauntedNight,
   language,
   onExploreGame,
+  onExploreHome,
   onExploreMusic,
   onExploreServices,
   onExploreStreex,
@@ -1431,6 +1442,7 @@ function IdleExplorePanel({
   hauntedNight: boolean;
   language: Language;
   onExploreGame: () => void;
+  onExploreHome: () => void;
   onExploreMusic: () => void;
   onExploreServices: () => void;
   onExploreStreex: () => void;
@@ -1439,10 +1451,12 @@ function IdleExplorePanel({
 }) {
   const items = [
     {
-      icon: <Gamepad2 />,
-      label: t.games,
+      icon: hauntedNight ? <MoonStar /> : <Gamepad2 />,
+      label: hauntedNight ? "Midnight Hunt" : t.games,
       detail: hauntedNight
-        ? "Midnight Hunt"
+        ? language === "es"
+          ? "Toca para jugar · 60 s"
+          : "Tap to play · 60 sec"
         : language === "es"
           ? "Juega y disfruta"
           : "Play & enjoy",
@@ -1503,7 +1517,7 @@ function IdleExplorePanel({
           type="button"
           onClick={(event) => {
             event.stopPropagation();
-            onExploreStreex();
+            onExploreHome();
           }}
           className="passenger-idle-explore-cta"
         >
