@@ -5,6 +5,7 @@ import {
   useState,
   type CSSProperties,
   type PointerEvent,
+  type MouseEvent,
 } from "react";
 import {
   ArrowLeft,
@@ -24,6 +25,11 @@ import {
   huntReducer,
   MIDNIGHT_HUNT_SPIRITS,
 } from "./midnight-hunt";
+import {
+  createHuntLanternTracker,
+  HUNT_LANTERN_RADIUS,
+  type LanternPoint,
+} from "./midnight-lantern";
 import "./midnight-hunt.css";
 
 const words = {
@@ -32,13 +38,13 @@ const words = {
     title: "Midnight Hunt",
     subtitle: "Five lost spirits. One minute before midnight.",
     story: "The gate opens for those who bring back the light.",
-    instructions: "Move your lantern. Tap the five hidden spirits to open the gate.",
+    instructions: "Drag to search. Tap the illuminated spirits to open the gate.",
     start: "Enter the hunt",
     duration: "60 seconds",
     touch: "Touch to discover",
     sound: "Your music keeps playing",
     playing: "Find the lost spirits",
-    hint: "Explore with your lantern · Tap a spirit to collect it",
+    hint: "Drag to search · Tap illuminated spirits",
     found: "spirits found",
     pause: "Pause hunt",
     paused: "The night can wait.",
@@ -60,13 +66,13 @@ const words = {
     title: "Caza de Medianoche",
     subtitle: "Cinco espíritus perdidos. Un minuto antes de medianoche.",
     story: "La puerta se abre para quienes devuelven la luz.",
-    instructions: "Mueve tu linterna. Toca los cinco espíritus ocultos para abrir la puerta.",
+    instructions: "Desliza para buscar. Toca los espíritus iluminados para abrir la puerta.",
     start: "Comenzar la caza",
     duration: "60 segundos",
     touch: "Toca para descubrir",
     sound: "Tu música sigue sonando",
     playing: "Encuentra los espíritus",
-    hint: "Explora con tu linterna · Toca un espíritu para recogerlo",
+    hint: "Desliza para buscar · Toca los espíritus iluminados",
     found: "espíritus encontrados",
     pause: "Pausar partida",
     paused: "La noche puede esperar.",
@@ -113,6 +119,11 @@ export function MidnightHunt({
   const [state, dispatch] = useReducer(huntReducer, undefined, createHuntState);
   const [hidden, setHidden] = useState(() => typeof document !== "undefined" && document.hidden);
   const scene = useRef<HTMLElement>(null);
+  const spiritLayer = useRef<HTMLDivElement>(null);
+  const lantern = useRef<ReturnType<typeof createHuntLanternTracker> | null>(null);
+  if (!lantern.current) lantern.current = createHuntLanternTracker();
+  const lanternPoint = useRef<LanternPoint | null>(null);
+  const pointerOrigin = useRef<LanternPoint | null>(null);
   const callbacks = useRef({ onOpened, onComplete });
   const opened = useRef(false);
   const completedRound = useRef(0);
@@ -145,14 +156,85 @@ export function MidnightHunt({
 
   const start = () => {
     if (document.hidden) return;
+    lantern.current!.reset();
+    lanternPoint.current = null;
+    pointerOrigin.current = null;
+    scene.current?.style.setProperty("--lantern-x", "-1000px");
+    scene.current?.style.setProperty("--lantern-y", "-1000px");
     dispatch({ type: "start", spirits: createHuntSpirits(), now: performance.now() });
     onStart();
   };
-  const moveLantern = (event: PointerEvent<HTMLElement>) => {
+  const syncDiscovery = (now: number) => {
+    if (!scene.current) return;
+    lantern.current!.update(
+      lanternPoint.current,
+      state.spirits.filter((s) => !state.found.includes(s.id)),
+      {
+        width: scene.current.clientWidth,
+        height: scene.current.clientHeight,
+      },
+      now,
+    );
+    spiritLayer.current?.querySelectorAll<HTMLElement>("[data-spirit-id]").forEach((button) => {
+      button.dataset.illuminated = String(
+        lantern.current!.isIlluminated(Number(button.dataset.spiritId)),
+      );
+    });
+  };
+  const placeLantern = (point: LanternPoint) => {
+    if (!scene.current) return;
+    lanternPoint.current = point;
+    scene.current.style.setProperty("--lantern-x", `${point.x}px`);
+    scene.current.style.setProperty("--lantern-y", `${point.y}px`);
+    syncDiscovery(performance.now());
+  };
+  const pointerPoint = (event: PointerEvent<HTMLElement>) => {
+    const board = scene.current!;
+    const rect = board.getBoundingClientRect();
+    return {
+      x: event.clientX - rect.left - board.clientLeft,
+      y: event.clientY - rect.top - board.clientTop,
+    };
+  };
+  const beginLantern = (event: PointerEvent<HTMLElement>) => {
     if (state.phase !== "playing" || !scene.current) return;
-    const rect = scene.current.getBoundingClientRect();
-    scene.current.style.setProperty("--lantern-x", `${event.clientX - rect.left}px`);
-    scene.current.style.setProperty("--lantern-y", `${event.clientY - rect.top}px`);
+    if (!event.isPrimary) {
+      lantern.current!.cancelPointer();
+      return;
+    }
+    const target = event.target as Element;
+    if (target.closest(".midnight-hud")) return;
+    syncDiscovery(performance.now());
+    const button = target.closest<HTMLElement>("[data-spirit-id]");
+    lantern.current!.beginPointer(
+      button ? Number(button.dataset.spiritId) : null,
+      performance.now(),
+    );
+    pointerOrigin.current = pointerPoint(event);
+    placeLantern(pointerOrigin.current);
+  };
+  const moveLantern = (event: PointerEvent<HTMLElement>) => {
+    if (state.phase !== "playing" || !scene.current || !event.isPrimary) return;
+    if ((event.target as Element).closest(".midnight-hud")) return;
+    const point = pointerPoint(event);
+    if (
+      pointerOrigin.current &&
+      Math.hypot(point.x - pointerOrigin.current.x, point.y - pointerOrigin.current.y) > 12
+    )
+      lantern.current!.markDrag();
+    placeLantern(point);
+  };
+  const collectSpirit = (id: number, event: MouseEvent<HTMLButtonElement>) => {
+    if (state.phase !== "playing" || document.hidden) return;
+    const now = performance.now();
+    syncDiscovery(now);
+    const allowed =
+      event.detail === 0 && event.currentTarget.matches(":focus-visible")
+        ? lantern.current!.canCollect(id, now)
+        : lantern.current!.canCollectPointer(id, now);
+    lantern.current!.cancelPointer();
+    pointerOrigin.current = null;
+    if (allowed) dispatch({ type: "collect", id, now });
   };
   const seconds = Math.ceil(state.remainingMs / 1000);
   const won = state.found.length === MIDNIGHT_HUNT_SPIRITS;
@@ -165,7 +247,12 @@ export function MidnightHunt({
       data-paused={hidden || state.phase === "paused"}
       aria-label={t.title}
       onPointerMove={moveLantern}
-      onPointerDown={moveLantern}
+      onPointerDownCapture={beginLantern}
+      onPointerCancel={() => {
+        lantern.current!.cancelPointer();
+        pointerOrigin.current = null;
+      }}
+      style={{ "--lantern-radius": `${HUNT_LANTERN_RADIUS}px` } as CSSProperties}
     >
       <link rel="preload" as="image" href="/passenger-haunted-night/midnight-spirit.webp" />
       <img
@@ -229,11 +316,13 @@ export function MidnightHunt({
 
       {(state.phase === "playing" || state.phase === "paused") && (
         <>
-          <div className="midnight-spirits">
+          <div ref={spiritLayer} className="midnight-spirits">
             {state.spirits.map((spirit) => (
               <button
-                key={spirit.id}
+                key={`${state.round}-${spirit.id}`}
                 className="midnight-spirit"
+                data-spirit-id={spirit.id}
+                data-illuminated="false"
                 data-found={state.found.includes(spirit.id)}
                 style={
                   {
@@ -244,7 +333,19 @@ export function MidnightHunt({
                 }
                 aria-label={`${t.spirit} ${spirit.id + 1}`}
                 disabled={state.phase !== "playing" || state.found.includes(spirit.id)}
-                onClick={() => dispatch({ type: "collect", id: spirit.id, now: performance.now() })}
+                onFocus={(event) => {
+                  if (
+                    !event.currentTarget.matches(":focus-visible") ||
+                    !scene.current ||
+                    state.phase !== "playing"
+                  )
+                    return;
+                  placeLantern({
+                    x: (spirit.x * scene.current.clientWidth) / 100,
+                    y: (spirit.y * scene.current.clientHeight) / 100,
+                  });
+                }}
+                onClick={(event) => collectSpirit(spirit.id, event)}
               >
                 <img
                   className="midnight-spirit-art"

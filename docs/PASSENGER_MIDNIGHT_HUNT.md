@@ -109,3 +109,27 @@ Validation: existing 107 tests/4,534 assertions passed; TypeScript/build, focuse
 The owner approved publishing the idle-to-Home correction and highlighted game entry, together with a longer wait for tonight. While Halloween is manually selected, normal Passenger enters Idle after **300 seconds of inactivity**. Every real interaction still resets the timer; returning to Original/Accent restores the configured normal duration (currently 90 seconds). Explicit test mode retains 15 seconds; Glance rotation and the one-minute game round are unchanged. The application does not remain permanently in Games, and no date scheduler/configuration/database update is introduced. This is an explicit owner-approved seasonal timing exception; B01 remains deferred.
 
 Release scope includes local `1ce71bd` plus this timing adjustment. The owner authorized commit, push and Production deployment after reviewing the screenshot. Previous stable production is `04013f6`, Vercel reference `8vfsH3QR5oWARrLLzh7gAtp9SFKY`, immutable URL `streex-riders-o7tkygrs5-juangaudinos-projects.vercel.app`. Existing Git integration deploys main to `streex-riders`; no credentials or schema changes are part of the release.
+
+## Lantern discovery correction — approved for production
+
+The owner approved implementing and publishing true flashlight discovery. Spirits previously remained visible through the translucent dark overlay and their buttons collected on any click. The entire spirit layer now has a radial CSS mask (including glow, ring and focus outline): alpha is zero outside the 155 px beam, with a soft spatial reveal toward the bright center. The scene, HUD and music are unaffected. An opacity fallback uses per-target illumination for browsers without standard/prefixed CSS masks.
+
+`midnight-lantern.ts` tracks continuous illumination in the 110 px inner discovery area. A 200 ms discovery period prevents instantaneous hover/click collection. Pointer-down snapshots eligibility **before** repositioning the beam, so even a long blind first press can only reveal. Collection requires a previously discovered, currently illuminated target and a new deliberate tap; dragging/cancellation blocks collection on release. Moving the beam away removes discovery. Replay resets the beam off-scene and clears eligibility. Keyboard focus moves the beam to its target and Enter can collect after discovery. The beam stays in place on lift. Instructions are updated in English/Spanish.
+
+No new animation loop, timer, external request, analytics event or dependency was added. Pointer movement updates CSS variables and at most five local discovery entries; coordinates stay transient inside the game and never enter analytics/storage. Existing five-minute Halloween inactivity, one-minute round, Home exit, themes, Spotify and queue semantics are unchanged.
+
+Validation:
+
+- **115 passing tests / 4,556 assertions**, 22 files, with network-blocking preload. Eight new tests cover beam geometry, blind/long presses, dwell, moving away/re-entry, drag, cancellation, replay/removal and resize.
+- TypeScript, production build, focused ESLint and diff checks passed in the existing clean local validation copy; production source matches the repository byte-for-byte.
+- Actual browser at 1280 × 800: all spirits initially hidden; blind first tap revealed with score 0; subsequent tap collected; another blind tap did not collect; moving away removed illumination. Native pointer drag revealed without collecting. A full five-spirit win and replay were completed; replay restored zero lit targets/score and one timer.
+- Keyboard focus illuminated its target and Enter collected. Simulated document hiding paused the game with zero timers; leaving for Music unmounted it with zero timers.
+- At 1024 × 640, the same mask and blind-tap rule worked with no horizontal document overflow. Applying exact reduced-motion CSS declarations left no animated descendants while preserving the mask/gameplay. Native OS preference and physical Fully Kiosk touch remain owner checks.
+- Actual 60-second expiry occurred during a slow local verification and rejected a late final action, preserving the existing deadline.
+- External services remained local fixtures. Physical tablet FPS, real Bluetooth audio and production runtime logs were not measured by this test.
+
+Evidence: [before light](evidence/passenger-lantern-discovery/before-beam.jpg), [revealed, score still zero](evidence/passenger-lantern-discovery/revealed-not-collected.jpg), [light moved away](evidence/passenger-lantern-discovery/beam-moved-away.jpg), [structured QA](evidence/passenger-lantern-discovery/qa-results.json). Static comparison captures freeze only CSS animation through the existing QA harness; game time and actual controls still execute.
+
+Release baseline/rollback reference: production `0f8fdc1`, Vercel reference `9H7cxoCdMBb41y19gX9qmyBLQGLc`, immutable deployment `streex-riders-n1hk910sw-juangaudinos-projects.vercel.app`, verified through GitHub's successful Production deployment. The owner explicitly authorized commit, push and deploy of this correction. No production setting, credential or database migration is required.
+
+Desktop-only five-second gameplay frame sample (including native pointer drags): 301 frames, mean 16.67 ms, p95 18.1 ms, no intervals over 50 ms. This is not physical tablet performance evidence. Final inspected local console had no errors/warnings.

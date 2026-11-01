@@ -1,0 +1,60 @@
+{
+  "initial": {
+    "lit": 0,
+    "mask": "radial-gradient(155px at -1000px -1000px, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 62%, rgba(0, 0, 0, 0) 100%)",
+    "pointX": "-1000px",
+    "progress": "0 / 5 spirits found"
+  },
+  "firstBlindTap": {
+    "lit": "true",
+    "progress": "0 / 5 spirits found"
+  },
+  "secondTap": "1 / 5 spirits found",
+  "secondBlindTap": "1 / 5 spirits found",
+  "movedAway": {
+    "lit": 0,
+    "progress": "1 / 5 spirits found"
+  },
+  "drag": {
+    "lit": "true",
+    "pointX": "534px",
+    "progress": "1 / 5 spirits found"
+  },
+  "keyboardFocus": {
+    "active": "Collect spirit 2",
+    "illuminated": "true"
+  },
+  "keyboardCollect": "1 / 5 spirits found",
+  "hidden": {
+    "phase": "paused",
+    "timers": "0"
+  },
+  "cleanup": {
+    "game": false,
+    "timers": "0"
+  },
+  "expiration": true,
+  "win": true,
+  "replay": {
+    "lit": 0,
+    "point": "-1000px",
+    "progress": "0 / 5 spirits found",
+    "timers": "1"
+  },
+  "reducedCompact": {
+    "animations": [],
+    "mask": "radial-gradient(155px at -1000px -1000px, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 62%, rgba(0, 0, 0, 0) 100%)",
+    "overflow": false,
+    "point": "-1000px",
+    "viewport": [
+      1024,
+      640
+    ]
+  },
+  "compactBlind": "0 / 5 spirits found",
+  "frameSample": {
+    "phase": "playing",
+    "sample": "{\"frames\":301,\"meanMs\":16.668438538205983,\"p95Ms\":18.099999999999454,\"longFrames\":0}"
+  },
+  "console": []
+}

@@ -1,7 +1,7 @@
 /* Scoped to the seasonal game; never changes the three original games. */
 .midnight-hunt {
-  --lantern-x: 50%;
-  --lantern-y: 56%;
+  --lantern-x: -1000px;
+  --lantern-y: -1000px;
   position: relative;
   isolation: isolate;
   width: 100%;
@@ -193,6 +193,17 @@
 .midnight-spirits {
   position: absolute;
   inset: 0;
+  /* Mask the entire layer, including rings, shadows and keyboard outlines. */
+  -webkit-mask-image: radial-gradient(
+    circle var(--lantern-radius, 155px) at var(--lantern-x) var(--lantern-y),
+    #000 0 62%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--lantern-radius, 155px) at var(--lantern-x) var(--lantern-y),
+    #000 0 62%,
+    transparent 100%
+  );
 }
 .midnight-spirit {
   position: absolute;
@@ -244,7 +255,7 @@
   inset: 0;
   pointer-events: none;
   background: radial-gradient(
-    circle 155px at var(--lantern-x) var(--lantern-y),
+    circle var(--lantern-radius, 155px) at var(--lantern-x) var(--lantern-y),
     transparent 8%,
     #140c1710 48%,
     #090611a8 100%
@@ -563,4 +574,16 @@
 
 .midnight-hunt[data-phase="playing"] {
   touch-action: none;
+}
+
+@supports not (
+  (mask-image: radial-gradient(black, transparent)) or
+    (-webkit-mask-image: radial-gradient(black, transparent))
+) {
+  .midnight-spirit {
+    opacity: 0;
+  }
+  .midnight-spirit[data-illuminated="true"] {
+    opacity: 1;
+  }
 }
