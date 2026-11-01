@@ -32,3 +32,8 @@ export function getPassengerThemePresentation(config: ThemeConfig, view: string,
     hauntedSurface: selected === "halloween" ? surface : null,
   };
 }
+
+/** The owner's seasonal Games exception; the regular games stay mounted only outside Halloween. */
+export function getPassengerSeasonalGame(config: ThemeConfig): "midnight-hunt" | null {
+  return getPassengerVisualTheme(config) === "halloween" ? "midnight-hunt" : null;
+}

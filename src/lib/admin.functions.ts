@@ -15,6 +15,7 @@ import { bookingConflictMessage } from "./schedule-conflicts";
 import { syncBookingWithGoogleCalendar } from "./google-calendar-sync.server";
 import { updatePricingQuoteLifecycleForBooking } from "./pricing-lifecycle.server";
 import { assertBookingResponseTokenConfigured } from "./booking-response-token.server";
+import { PASSENGER_GAME_IDS, type PassengerGameId } from "./passenger-analytics";
 import {
   buildPassengerUsageMap,
   PASSENGER_ANALYTICS_RANGE_PRESETS,
@@ -100,7 +101,7 @@ async function getPassengerAnalyticsReportingStart(tenantId: string) {
 function passengerAnalyticsGame(metadata: Json) {
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return null;
   const game = metadata.game;
-  return game === "trivia" || game === "choice" || game === "higher-lower" ? game : null;
+  return PASSENGER_GAME_IDS.includes(game as PassengerGameId) ? (game as PassengerGameId) : null;
 }
 
 export const listAdminBookings = createServerFn({ method: "POST" })
@@ -183,7 +184,7 @@ export const getAdminPassengerAnalyticsSummary = createServerFn({ method: "POST"
       ]),
     );
     const gameCounts = Object.fromEntries(
-      ["trivia", "choice", "higher-lower"].map((game) => [
+      PASSENGER_GAME_IDS.map((game) => [
         game,
         {
           opened: events.filter(

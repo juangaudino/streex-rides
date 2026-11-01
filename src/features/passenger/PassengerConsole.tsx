@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AppConfig } from "@/config";
-import { getPassengerThemePresentation } from "@/lib/passenger-visual-theme";
+import {
+  getPassengerSeasonalGame,
+  getPassengerThemePresentation,
+} from "@/lib/passenger-visual-theme";
 import { HauntedEditionMark, HauntedNightAtmosphere } from "./HauntedNightAtmosphere";
 import {
   ArrowLeft,
@@ -74,6 +77,7 @@ import {
   usePassengerWeather,
   type PassengerWeatherStatus,
 } from "./usePassengerState";
+import { MidnightHunt } from "./MidnightHunt";
 import { UtahTrivia } from "./UtahTrivia";
 import { ThisOrThat } from "./ThisOrThat";
 import { UtahHigherOrLower } from "./UtahHigherOrLower";
@@ -162,7 +166,7 @@ type View =
   | "tip"
   | "where-we-ride";
 
-type PassengerGame = "trivia" | "choice" | "higher-lower";
+type PassengerGame = "trivia" | "choice" | "higher-lower" | "midnight-hunt";
 
 type PassengerReview = {
   name: string;
@@ -715,6 +719,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
     idleReset.promptOpen,
   );
   const hauntedNight = themePresentation.hauntedSurface !== null;
+  const halloweenSelected = getPassengerSeasonalGame(consoleConfig) !== null;
   const simulatedAroundYouPlace = useMemo(
     () =>
       getAroundYouTestPresets(AROUND_YOU_SEED_PLACES).find(
@@ -775,7 +780,9 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
     },
     [analytics],
   );
-  const quickGame = PASSENGER_GAMES[quickGameIndex % PASSENGER_GAMES.length];
+  const quickGame: PassengerGame = halloweenSelected
+    ? "midnight-hunt"
+    : PASSENGER_GAMES[quickGameIndex % PASSENGER_GAMES.length];
   const setAroundYouTestPreset = useCallback((placeId: string | null) => {
     setSimulatedAroundYouPlaceId(placeId);
     setSessionKey((current) => current + 1);
@@ -908,6 +915,8 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
           )}
           {view === "games" && (
             <GamesView
+              hauntedNight={halloweenSelected}
+              onMusic={() => navigateTo("music")}
               language={language}
               t={t}
               thisOrThatEnabled={consoleConfig.games.thisOrThatEnabled}
@@ -1134,6 +1143,7 @@ function PassengerIdlePrompt({
         </section>
 
         <IdleExplorePanel
+          hauntedNight={hauntedNight}
           language={language}
           onExploreGame={onExploreGame}
           onExploreMusic={onExploreMusic}
@@ -1226,6 +1236,18 @@ function getPassengerGamePresentation(
   icon: React.ReactNode;
   title: string;
 } {
+  if (game === "midnight-hunt") {
+    return {
+      artwork: "/passenger-haunted-night/midnight-gate.webp",
+      description:
+        t === copy.es
+          ? "Cinco espíritus. Un minuto. Entra al misterio."
+          : "Five spirits. One minute. Enter the mystery.",
+      icon: <MoonStar className="h-6 w-6" />,
+      title: "Midnight Hunt",
+    };
+  }
+
   if (game === "choice") {
     return {
       artwork: THIS_OR_THAT_TRAILER_VISUALS[0]?.src ?? utahTriviaAtlas,
@@ -1397,6 +1419,7 @@ function IdlePhoneContinuation({ config, t }: { config: AppConfig; t: (typeof co
 }
 
 function IdleExplorePanel({
+  hauntedNight,
   language,
   onExploreGame,
   onExploreMusic,
@@ -1405,6 +1428,7 @@ function IdleExplorePanel({
   onExploreYourRide,
   t,
 }: {
+  hauntedNight: boolean;
   language: Language;
   onExploreGame: () => void;
   onExploreMusic: () => void;
@@ -1417,7 +1441,11 @@ function IdleExplorePanel({
     {
       icon: <Gamepad2 />,
       label: t.games,
-      detail: language === "es" ? "Juega y disfruta" : "Play & enjoy",
+      detail: hauntedNight
+        ? "Midnight Hunt"
+        : language === "es"
+          ? "Juega y disfruta"
+          : "Play & enjoy",
       onClick: onExploreGame,
     },
     {
@@ -1459,7 +1487,7 @@ function IdleExplorePanel({
                 event.stopPropagation();
                 item.onClick();
               }}
-              className="passenger-idle-explore-link"
+              className={`passenger-idle-explore-link${hauntedNight && item.onClick === onExploreGame ? " haunted-game-invitation" : ""}`}
             >
               <span className="passenger-idle-explore-icon" aria-hidden="true">
                 {item.icon}
@@ -2057,7 +2085,10 @@ function HomeView({
         )}
       </div>
 
-      <section className="passenger-home-quick-access">
+      <section
+        className="passenger-home-quick-access"
+        data-haunted-game={hauntedNight || undefined}
+      >
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/55">
           {t.quickAccess}
         </p>
@@ -3630,6 +3661,8 @@ function SimulatedMusicView({
 }
 
 function GamesView({
+  hauntedNight,
+  onMusic,
   language,
   onGameCompleted,
   onGameOpened,
@@ -3642,6 +3675,8 @@ function GamesView({
   utahTriviaEnabled,
   phoneContinuation,
 }: {
+  hauntedNight: boolean;
+  onMusic: () => void;
   language: Language;
   onGameCompleted: (game: PassengerGame) => void;
   onGameOpened: (game: PassengerGame) => void;
@@ -3661,6 +3696,20 @@ function GamesView({
     setActiveGame(requestedGame);
     onRequestedGameConsumed();
   }, [onRequestedGameConsumed, requestedGame]);
+
+  if (hauntedNight) {
+    return (
+      <MidnightHunt
+        language={language}
+        onOpened={() => {
+          if (!requestedGame) onGameOpened("midnight-hunt");
+        }}
+        onStart={() => onGameStarted("midnight-hunt")}
+        onComplete={() => onGameCompleted("midnight-hunt")}
+        onMusic={onMusic}
+      />
+    );
+  }
 
   if (activeGame === "trivia" && utahTriviaEnabled) {
     return (

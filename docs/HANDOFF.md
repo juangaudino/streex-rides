@@ -126,3 +126,7 @@ Plantilla para cada actualización futura:
 ## Retorno de Astra
 
 No volver por cada task. G1 revisión con Astra solo si quedan conflictos transversales de alto riesgo o Terra no logra cerrarlos con evidencia. Final V01: F1–F5 verificadas, F6 realizado o diferido explícitamente, SaaS standby; entregar evidencia y pedir reauditoría read-only contra diagnóstico original, no implementación automática. Ver [condiciones completas](EXECUTION_PLAN.md#cuándo-debe-volver-astra).
+
+## Seasonal Passenger exception — October 31 local checkpoint
+
+The owner approved a local enhancement of the already-published Haunted Night edition: Midnight Hunt replaces Games only while Halloween is selected, plus discovery from existing Home/Idle accesses and a brief active-entry fog opening. This explicitly extends yesterday's Games exclusion. Work is isolated on `feat/passenger-midnight-hunt-local`, based on `f735685`; main and production stay unchanged pending real local screenshots, owner review and a separate publication authorization. See [Midnight Hunt implementation and local evidence](PASSENGER_MIDNIGHT_HUNT.md). This checkpoint does not close B01 or move the master next-task pointer.

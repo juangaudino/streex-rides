@@ -50,7 +50,7 @@ export function PassengerVisualThemeControl({
           <h2 className="text-base font-semibold">Tema visual</h2>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/55">
             Independent of Lite / Complete. Save config, then reload Passenger on the tablet.
-            Halloween changes Home, Music and the idle screen; Games keeps its current appearance.
+            Halloween includes Home, Music, the idle screen and the exclusive Midnight Hunt game.
           </p>
         </div>
       </div>
@@ -94,7 +94,8 @@ export function PassengerVisualThemeControl({
         ))}
       </div>
       <p className="mt-4 text-xs leading-relaxed text-white/55">
-        Manual activation only. Select Original or Accent and save to remove Halloween completely.
+        Manual activation only. Select Original or Accent and save to restore the usual appearance
+        and games.
       </p>
     </section>
   );

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { CONFIG } from "../src/config.ts";
 import {
   getPassengerThemePresentation,
+  getPassengerSeasonalGame,
   getPassengerVisualTheme,
 } from "../src/lib/passenger-visual-theme.ts";
 import {
@@ -50,7 +51,7 @@ describe("Passenger manual Halloween pilot", () => {
     expect(getPassengerVisualTheme(config.passengerConsole)).toBe("original");
   });
 
-  test("mounts Halloween only on the three approved surfaces in both modes", () => {
+  test("keeps the shared atmosphere on Home, Music and Idle in both modes", () => {
     for (const experienceMode of ["lite", "complete"]) {
       const config = { ...CONFIG.passengerConsole, experienceMode, visualTheme: "halloween" };
       expect(getPassengerThemePresentation(config, "home", false).hauntedSurface).toBe("home");
@@ -62,6 +63,23 @@ describe("Passenger manual Halloween pilot", () => {
           hauntedSurface: null,
         });
       }
+    }
+  });
+
+  test("replaces Games only for explicit Halloween selection and restores normal games in both modes", () => {
+    for (const experienceMode of ["lite", "complete"]) {
+      for (const visualTheme of ["original", "accent", null, undefined, "unknown"]) {
+        expect(
+          getPassengerSeasonalGame({ ...CONFIG.passengerConsole, experienceMode, visualTheme }),
+        ).toBeNull();
+      }
+      expect(
+        getPassengerSeasonalGame({
+          ...CONFIG.passengerConsole,
+          experienceMode,
+          visualTheme: "halloween",
+        }),
+      ).toBe("midnight-hunt");
     }
   });
 

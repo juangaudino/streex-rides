@@ -43,7 +43,7 @@ export const PASSENGER_ANALYTICS_ELEMENTS = [
   "streex_action",
 ] as const;
 
-export const PASSENGER_GAME_IDS = ["trivia", "choice", "higher-lower"] as const;
+export const PASSENGER_GAME_IDS = ["trivia", "choice", "higher-lower", "midnight-hunt"] as const;
 export const PASSENGER_ANALYTICS_ENGAGEMENT_SOURCES = [
   "initial_interaction",
   "idle_resume",

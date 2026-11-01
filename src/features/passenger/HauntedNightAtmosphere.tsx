@@ -44,6 +44,7 @@ export const HauntedNightAtmosphere = memo(function HauntedNightAtmosphere({
         decoding="async"
       />
       <div className="haunted-night-vignette" />
+      <div className="haunted-night-arrival" />
       <div className="haunted-night-halo" />
       <div className="haunted-night-mist haunted-night-mist--near" />
       <div className="haunted-night-mist haunted-night-mist--far" />

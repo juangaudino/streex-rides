@@ -1,0 +1,121 @@
+{
+  "viewport": [
+    1280,
+    800
+  ],
+  "checks": {
+    "homeEntry": true,
+    "navEntry": true,
+    "collect": true,
+    "pauseKeepsTime": true,
+    "win": true,
+    "replay": true,
+    "musicReturn": true,
+    "expiredRound": true,
+    "adminPersistence": true,
+    "idleEntry": true,
+    "completeSpanish": true,
+    "unmountDuringRound": true
+  },
+  "limitations": [
+    "External services use local fixtures; no real Spotify audio or production database writes.",
+    "Physical tablet and native OS reduced-motion preference are unavailable."
+  ],
+  "accentRestoration": {
+    "decorations": 0,
+    "edition": null,
+    "gamePresent": false,
+    "regularGames": 3
+  },
+  "originalRestoration": {
+    "decorations": 0,
+    "gamePresent": false,
+    "regularGames": 3
+  },
+  "dimmed": {
+    "layer": true,
+    "paused": "true"
+  },
+  "compact": {
+    "game": {
+      "bottom": 528,
+      "height": 434,
+      "left": 32,
+      "right": 992,
+      "top": 94,
+      "width": 960,
+      "x": 32,
+      "y": 94
+    },
+    "hud": {
+      "bottom": 177,
+      "height": 70,
+      "left": 49,
+      "right": 975,
+      "top": 107,
+      "width": 926,
+      "x": 49,
+      "y": 107
+    },
+    "overflow": false,
+    "targets": [
+      {
+        "height": 76,
+        "width": 72
+      },
+      {
+        "height": 76,
+        "width": 72
+      },
+      {
+        "height": 76,
+        "width": 72
+      },
+      {
+        "height": 76,
+        "width": 72
+      },
+      {
+        "height": 76,
+        "width": 72
+      }
+    ],
+    "viewport": [
+      1024,
+      640
+    ]
+  },
+  "reducedMotion": {
+    "animations": [],
+    "fixture": "reduced-motion-rules-fixture",
+    "transitions": []
+  },
+  "visibilityCheck": {
+    "paused": "false",
+    "phase": "playing",
+    "visibility": "visible"
+  },
+  "backgroundFixture": {
+    "paused": "true",
+    "phase": "paused",
+    "remaining": "60s",
+    "timers": "0"
+  },
+  "cleanup": {
+    "gamePresent": false,
+    "timers": "0"
+  },
+  "remount": {
+    "phase": "playing",
+    "timers": "1"
+  },
+  "secondCleanup": {
+    "gamePresent": false,
+    "timers": "0"
+  },
+  "frameSample": {
+    "phase": "playing",
+    "sample": "{\"frames\":300,\"meanMs\":16.666900000000002,\"p95Ms\":18.100000000000364,\"longFrames\":0}"
+  },
+  "console": []
+}

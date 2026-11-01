@@ -2,6 +2,8 @@
 
 Date: October 30, 2026. Local validation was completed and the owner subsequently authorized publication. Physical-tablet validation remains pending. This technical record is not a replacement roadmap. B01 remains in standby after UX04/UX05; this work is the owner's explicitly authorized seasonal exception.
 
+**October 31 follow-up:** the owner subsequently approved a local enhancement that explicitly extends the Games exclusion described in this historical release record. See [Midnight Hunt](PASSENGER_MIDNIGHT_HUNT.md) for the un-published candidate, screenshots, restoration and checks. The original release evidence below remains unchanged.
+
 ## Concept and scope
 
 A moonlit forest road, restrained copper lighting, dark violet glass, low drifting mist, eight slow embers and an occasional three-bat silhouette passage. Home welcomes passengers with “Your ride. After dark.” Music keeps its artwork, track hierarchy and controls. Idle keeps Music first, the rotating Glance rail, fixed phone QR and Explore controls. No thematic audio, flashes, third-party animation library or production JavaScript animation loop was added.

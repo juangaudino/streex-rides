@@ -58,7 +58,9 @@ export function prepareLocalFixture(params: URLSearchParams) {
 }
 
 export async function callLocalFixture(name: string, input?: { data?: Record<string, unknown> }) {
-  const log = ((window as unknown as { __hauntedQaCalls?: unknown[] }).__hauntedQaCalls ??= []);
+  type FixtureCall = { name: string; data?: Record<string, unknown>; at: number };
+  type FixtureEvent = { id: string; name: string; metadata?: { game?: string; source?: string } };
+  const log = ((window as unknown as { __hauntedQaCalls?: FixtureCall[] }).__hauntedQaCalls ??= []);
   log.push({ name, data: input?.data, at: performance.now() });
   if (name === "getAdminSession")
     return {
@@ -138,7 +140,18 @@ export async function callLocalFixture(name: string, input?: { data?: Record<str
       },
     };
   }
-  if (name === "ingestPassengerAnalytics") return { ok: true };
+  if (name === "ingestPassengerAnalytics") {
+    // Expose semantic fixture-only evidence to the DOM inspection API, never production telemetry.
+    const events = log.flatMap((call) =>
+      call.name === name ? ((call.data?.events as FixtureEvent[] | undefined) ?? []) : [],
+    );
+    document.documentElement.dataset.qaGameEvents = JSON.stringify(
+      events
+        .filter((event) => event.metadata?.game === "midnight-hunt")
+        .map((event) => ({ id: event.id, name: event.name, source: event.metadata?.source })),
+    );
+    return { ok: true };
+  }
   if (name === "getAdminTickerTheme" || name === "getTickerTheme")
     return { tickerStyle: "boarding", source: "local-qa" };
   // Other Admin surfaces are not exercised by this harness.
