@@ -3,6 +3,7 @@ import { prepareLocalFixture, readLocalConfig } from "./fixtures";
 import "@/styles.css";
 import hauntedStyles from "@/features/passenger/haunted-night.css?raw";
 import huntStyles from "@/features/passenger/midnight-hunt.css?raw";
+import gameWeekendStyles from "@/features/passenger/game-weekend/game-weekend.css?raw";
 
 const root = createRoot(document.getElementById("root")!);
 const params = new URLSearchParams(window.location.search);
@@ -22,6 +23,7 @@ prepareLocalFixture(params);
 if (params.get("lifecycle") === "1") {
   // Local-only platform fixtures exercise the real game's effects without native OS control.
   const intervals = new Set<number>();
+  const rails = new Map<number, () => void>();
   const nativeSetInterval = window.setInterval.bind(window);
   const nativeClearInterval = window.clearInterval.bind(window);
   const report = () => {
@@ -29,14 +31,18 @@ if (params.get("lifecycle") === "1") {
   };
   window.setInterval = ((handler: TimerHandler, delay?: number, ...args: unknown[]) => {
     const id = nativeSetInterval(handler, delay, ...args);
-    if (delay === 200) {
+    if (delay === 200 || delay === 100) {
       intervals.add(id);
       report();
     }
+    if (delay === 30_000 && typeof handler === "function") rails.set(id, () => handler(...args));
     return id;
   }) as typeof window.setInterval;
   window.clearInterval = (id?: number) => {
-    if (id !== undefined) intervals.delete(id);
+    if (id !== undefined) {
+      intervals.delete(id);
+      rails.delete(id);
+    }
     report();
     nativeClearInterval(id);
   };
@@ -57,13 +63,19 @@ if (params.get("lifecycle") === "1") {
     document.dispatchEvent(new Event("visibilitychange"));
   };
   document.body.append(visibility);
+  const advanceRail = document.createElement("button");
+  advanceRail.textContent = "Advance local rail";
+  advanceRail.style.cssText =
+    "position:fixed;right:170px;bottom:6px;z-index:999;background:#282032;color:white;padding:8px;font-size:10px;border:1px solid #9977bb;border-radius:8px";
+  advanceRail.onclick = () => rails.forEach((callback) => callback());
+  document.body.append(advanceRail);
 }
 
 if (params.get("motion") === "reduce") {
   // Execute the exact media-rule declarations as a local preference fixture.
   // This is not an emulation of the OS preference; the report keeps that distinction.
   const sheet = new CSSStyleSheet();
-  sheet.replaceSync(hauntedStyles + "\n" + huntStyles);
+  sheet.replaceSync(hauntedStyles + "\n" + huntStyles + "\n" + gameWeekendStyles);
   const reduced = [...sheet.cssRules].filter(
     (rule): rule is CSSMediaRule =>
       rule instanceof CSSMediaRule && rule.conditionText.includes("prefers-reduced-motion: reduce"),

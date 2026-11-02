@@ -1,0 +1,126 @@
+{
+  "environment": "localhost; intercepted server functions; no production requests",
+  "viewports": [
+    {
+      "width": 1280,
+      "height": 800,
+      "mode": "lite"
+    },
+    {
+      "width": 1024,
+      "height": 640,
+      "mode": "complete"
+    }
+  ],
+  "restoration": [
+    {
+      "theme": "accent",
+      "home": {
+        "edition": null,
+        "utes": 0
+      },
+      "games": "- banner:\n  - img \"Streex Rides\"\n  - text: Online\n  - button \"EN\" [pressed]\n  - button \"ES\"\n- main:\n  - button \"10 QUESTIONS · UTAH EDITION Utah Trivia Test what you know about the Beehive State. Play now\":\n    - generic: UT\n    - paragraph: 10 QUESTIONS · UTAH EDITION\n    - paragraph: Utah Trivia\n    - paragraph: Test what you know about the Beehive State.\n    - generic: Play now\n  - button \"Pick a side This or That Quick, playful choices between two options. THIS · THAT Play now\":\n    - generic: OR\n    - paragraph: Pick a side\n    - paragraph: This or That\n    - paragraph: Quick, playful choices between two options.\n    - text: THIS\n    - generic: ·\n    - text: THAT\n    - generic: Play now\n  - 'button \"UTAH COMPARISONS Utah: Higher or Lower Pick which Utah fact comes out on top. Play now\"':\n    - generic: ↑↓\n    - paragraph: UTAH COMPARISONS\n    - paragraph: \"Utah: Higher or Lower\"\n    - paragraph: Pick which Utah fact comes out on top.\n    - generic: Play now\n  - paragraph: Coming soon\n  - paragraph: Streex Horizon\n  - paragraph: Coming soon to your tablet experience.\n  - text: Play Streex Horizon on your phone\n  - generic: Scan to continue on your phone.\n- navigation \"Passenger console\":\n  - button \"Home\":\n    - generic: Home\n  - button \"Music\":\n    - generic: Music\n  - button \"Games\" [active]:\n    - generic: Games\n  - button \"Streex\":\n    - generic: Streex"
+    },
+    {
+      "theme": "original",
+      "home": {
+        "edition": null,
+        "utes": 0
+      },
+      "games": "- banner:\n  - img \"Streex Rides\"\n  - text: Online\n  - button \"EN\" [pressed]\n  - button \"ES\"\n- main:\n  - button \"10 QUESTIONS · UTAH EDITION Utah Trivia Test what you know about the Beehive State. Play now\":\n    - generic: UT\n    - paragraph: 10 QUESTIONS · UTAH EDITION\n    - paragraph: Utah Trivia\n    - paragraph: Test what you know about the Beehive State.\n    - generic: Play now\n  - button \"Pick a side This or That Quick, playful choices between two options. THIS · THAT Play now\":\n    - generic: OR\n    - paragraph: Pick a side\n    - paragraph: This or That\n    - paragraph: Quick, playful choices between two options.\n    - text: THIS\n    - generic: ·\n    - text: THAT\n    - generic: Play now\n  - 'button \"UTAH COMPARISONS Utah: Higher or Lower Pick which Utah fact comes out on top. Play now\"':\n    - generic: ↑↓\n    - paragraph: UTAH COMPARISONS\n    - paragraph: \"Utah: Higher or Lower\"\n    - paragraph: Pick which Utah fact comes out on top.\n    - generic: Play now\n  - paragraph: Coming soon\n  - paragraph: Streex Horizon\n  - paragraph: Coming soon to your tablet experience.\n  - text: Play Streex Horizon on your phone\n  - generic: Scan to continue on your phone.\n- navigation \"Passenger console\":\n  - button \"Home\":\n    - generic: Home\n  - button \"Music\":\n    - generic: Music\n  - button \"Games\" [active]:\n    - generic: Games\n  - button \"Streex\":\n    - generic: Streex"
+    },
+    {
+      "theme": "halloween",
+      "home": {
+        "edition": "haunted-night",
+        "utes": 0
+      },
+      "games": "- banner:\n  - img \"Streex Rides\"\n  - text: Online\n  - button \"EN\" [pressed]\n  - button \"ES\"\n- main:\n  - region \"Midnight Hunt\":\n    - text: A Haunted Night exclusive\n    - heading \"Midnight Hunt.\" [level=1]:\n      - text: Midnight\n      - emphasis: Hunt.\n    - paragraph: Five lost spirits. One minute before midnight.\n    - paragraph: Drag to search. Tap the illuminated spirits to open the gate.\n    - button \"Enter the hunt\":\n      - text: Enter the hunt\n    - text: 60 seconds\n    - text: Touch to discover\n    - text: Your music keeps playing\n- navigation \"Passenger console\":\n  - button \"Home\":\n    - generic: Home\n  - button \"Music\":\n    - generic: Music\n  - button \"Games\" [active]:\n    - generic: Games\n  - button \"Streex\":\n    - generic: Streex"
+    }
+  ],
+  "glanceTimerCallbackFixture": [
+    {
+      "feature": "Next few hours54°FClearNext few hours8 PM52°9 PM50°10 PM48°11 PM46°",
+      "qr": {
+        "height": 142,
+        "width": 339.9140625,
+        "x": 907.078125,
+        "y": 504.203125
+      }
+    },
+    {
+      "feature": "Next 4 days54°FSalt Lake CityNext few hoursSat54°Sun52°Mon50°Tue48°",
+      "qr": {
+        "height": 142,
+        "width": 339.9140625,
+        "x": 907.078125,
+        "y": 504.203125
+      }
+    },
+    {
+      "feature": "Your ride, your wayExplore StreexPlan a future ride, see services, leave a tip or share feedback.Open Streex",
+      "qr": {
+        "height": 142,
+        "width": 339.9140625,
+        "x": 907.078125,
+        "y": 504.203125
+      }
+    },
+    {
+      "feature": "RIVALRY WEEKEND · NOV 7UTAH vs BYURice-Eccles Stadium · 10 AM MT",
+      "qr": {
+        "height": 142,
+        "width": 339.9140625,
+        "x": 907.078125,
+        "y": 504.203125
+      }
+    }
+  ],
+  "compactDrive": {
+    "horizontalOverflow": false,
+    "motionFixture": "reduced-motion-rules-fixture",
+    "receivers": [
+      {
+        "x": 127.5078125,
+        "y": 310.3984375
+      },
+      {
+        "x": 345.609375,
+        "y": 263.46875
+      },
+      {
+        "x": 556.4375,
+        "y": 321.2265625
+      }
+    ],
+    "timers": "1"
+  },
+  "lifecycle": {
+    "playing": 1,
+    "paused": 0,
+    "hidden": 0,
+    "finished": 0,
+    "exitToMusic": 0
+  },
+  "driveObserved": {
+    "touchdowns": 1,
+    "completions": 4,
+    "deadline": "natural 60 active seconds",
+    "saved": "Touchdown Fan"
+  },
+  "triviaObserved": {
+    "answered": 8,
+    "correct": 3,
+    "saved": "Utes Fan"
+  },
+  "adminLocalPersistence": [
+    "accent",
+    "utes-weekend"
+  ],
+  "dim": "first tap dims; next tap wakes while staying idle",
+  "limitations": [
+    "Spotify uses local fixtures, no actual audio/device QA",
+    "Reduced-motion declarations fixture, not native OS emulation",
+    "Desktop observations are not physical tablet FPS measurements"
+  ]
+}

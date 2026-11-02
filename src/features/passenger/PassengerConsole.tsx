@@ -4,6 +4,8 @@ import {
   getPassengerSeasonalGame,
   getPassengerThemePresentation,
 } from "@/lib/passenger-visual-theme";
+import { GameWeekendAtmosphere, GameWeekendMark } from "./game-weekend/GameWeekendAtmosphere";
+import { GameWeekendGames } from "./game-weekend/GameWeekendGames";
 import { HauntedEditionMark, HauntedNightAtmosphere } from "./HauntedNightAtmosphere";
 import {
   ArrowLeft,
@@ -166,7 +168,13 @@ type View =
   | "tip"
   | "where-we-ride";
 
-type PassengerGame = "trivia" | "choice" | "higher-lower" | "midnight-hunt";
+type PassengerGame =
+  | "trivia"
+  | "choice"
+  | "higher-lower"
+  | "midnight-hunt"
+  | "touchdown-drive"
+  | "rivalry-trivia";
 
 type PassengerReview = {
   name: string;
@@ -697,7 +705,8 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
   const isLiteExperience = consoleConfig.experienceMode === "lite";
   const analytics = usePassengerAnalytics(passengerAnalyticsScreen(view));
   const aroundYouEnabled = consoleConfig.aroundYou.enabled || aroundYouTestMode;
-  const halloweenSelected = getPassengerSeasonalGame(consoleConfig) !== null;
+  const halloweenSelected = getPassengerSeasonalGame(consoleConfig) === "midnight-hunt";
+  const gameWeekendSelected = getPassengerSeasonalGame(consoleConfig) === "game-weekend";
   const idleInactivitySeconds = passengerTestMode
     ? 15
     : halloweenSelected
@@ -724,6 +733,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
     idleReset.promptOpen,
   );
   const hauntedNight = themePresentation.hauntedSurface !== null;
+  const gameWeekend = themePresentation.gameWeekendSurface != null;
   const simulatedAroundYouPlace = useMemo(
     () =>
       getAroundYouTestPresets(AROUND_YOU_SEED_PLACES).find(
@@ -786,7 +796,11 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
   );
   const quickGame: PassengerGame = halloweenSelected
     ? "midnight-hunt"
-    : PASSENGER_GAMES[quickGameIndex % PASSENGER_GAMES.length];
+    : gameWeekendSelected
+      ? quickGameIndex % 2 === 0
+        ? "touchdown-drive"
+        : "rivalry-trivia"
+      : PASSENGER_GAMES[quickGameIndex % PASSENGER_GAMES.length];
   const setAroundYouTestPreset = useCallback((placeId: string | null) => {
     setSimulatedAroundYouPlaceId(placeId);
     setSessionKey((current) => current + 1);
@@ -837,9 +851,14 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
     <div
       className="passenger-console-theme h-dvh overflow-hidden bg-[#0B0B0B] text-white"
       data-passenger-theme={themePresentation.baseTheme}
-      data-passenger-edition={hauntedNight ? "haunted-night" : undefined}
+      data-passenger-edition={
+        hauntedNight ? "haunted-night" : gameWeekend ? "utes-weekend" : undefined
+      }
       data-haunted-surface={themePresentation.hauntedSurface ?? undefined}
     >
+      {gameWeekend && !idleReset.promptOpen ? (
+        <GameWeekendAtmosphere surface={view === "music" ? "music" : "home"} />
+      ) : null}
       {hauntedNight && !idleReset.promptOpen ? (
         <HauntedNightAtmosphere surface={view === "music" ? "music" : "home"} />
       ) : null}
@@ -860,6 +879,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
           status={online ? t.online : t.offline}
         />
         {hauntedNight && !idleReset.promptOpen ? <HauntedEditionMark language={language} /> : null}
+        {gameWeekend && !idleReset.promptOpen ? <GameWeekendMark language={language} /> : null}
         <main
           key={sessionKey}
           className="mt-3 min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-5 pt-5"
@@ -868,6 +888,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
             <HomeView
               config={config}
               hauntedNight={hauntedNight}
+              gameWeekend={gameWeekend}
               aroundYou={aroundYou}
               language={language}
               spotifyHomePollingEnabled={shouldPollSpotifyHome(view, idleReset.promptOpen)}
@@ -920,6 +941,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
           {view === "games" && (
             <GamesView
               hauntedNight={halloweenSelected}
+              gameWeekend={gameWeekendSelected}
               onMusic={() => navigateTo("music")}
               language={language}
               t={t}
@@ -998,6 +1020,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
         <PassengerIdlePrompt
           config={config}
           hauntedNight={hauntedNight}
+          gameWeekend={gameWeekend}
           dimmed={idleScreenDimmed}
           featureRotationSeconds={idleFeatureRotationSeconds}
           fallbackTemperatureFahrenheit={consoleConfig.weather.fallbackTemperatureFahrenheit}
@@ -1009,7 +1032,10 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
           }}
           onExploreGame={() => {
             idleReset.resume();
-            openGame(quickGame, "idle");
+            if (gameWeekendSelected) {
+              setRequestedGame(null);
+              navigateTo("games");
+            } else openGame(quickGame, "idle");
           }}
           onExploreHome={() => {
             idleReset.resume();
@@ -1048,6 +1074,7 @@ export function PassengerConsole({ config }: PassengerConsoleProps) {
 function PassengerIdlePrompt({
   config,
   hauntedNight,
+  gameWeekend,
   dimmed,
   featureRotationSeconds,
   fallbackTemperatureFahrenheit,
@@ -1067,6 +1094,7 @@ function PassengerIdlePrompt({
 }: {
   config: AppConfig;
   hauntedNight: boolean;
+  gameWeekend: boolean;
   dimmed: boolean;
   featureRotationSeconds: number;
   fallbackTemperatureFahrenheit: number;
@@ -1085,7 +1113,10 @@ function PassengerIdlePrompt({
   weatherAtmosphereOverride: AtmosphereVariant | null;
 }) {
   const primary = copy[language];
-  const idleSecondaryRotation = useIdleSecondaryRotation(featureRotationSeconds * 1_000);
+  const idleSecondaryRotation = useIdleSecondaryRotation(
+    featureRotationSeconds * 1_000,
+    gameWeekend,
+  );
   const now = useClock();
   const time = now
     ? now.toLocaleTimeString("en-US", {
@@ -1105,6 +1136,7 @@ function PassengerIdlePrompt({
         logicalRest ? " passenger-idle-prompt--logical-rest" : ""
       }`}
     >
+      {gameWeekend ? <GameWeekendAtmosphere surface="idle" paused={dimmed || logicalRest} /> : null}
       {hauntedNight ? (
         <HauntedNightAtmosphere surface="idle" paused={dimmed || logicalRest} />
       ) : null}
@@ -1117,6 +1149,7 @@ function PassengerIdlePrompt({
             className="h-14 w-auto max-w-[220px] object-contain"
           />
           {hauntedNight ? <HauntedEditionMark language={language} /> : null}
+          {gameWeekend ? <GameWeekendMark language={language} /> : null}
           <span className="passenger-idle-meta flex shrink-0 items-center gap-4 text-right">
             <span className="text-3xl font-black tabular-nums tracking-tight sm:text-4xl">
               {time}
@@ -1157,6 +1190,7 @@ function PassengerIdlePrompt({
 
         <IdleExplorePanel
           hauntedNight={hauntedNight}
+          gameWeekend={gameWeekend}
           language={language}
           onExploreGame={onExploreGame}
           onExploreHome={onExploreHome}
@@ -1216,7 +1250,7 @@ function PassengerTestControls({
   );
 }
 
-type IdleSecondaryFeature = "weather-hourly" | "weather-daily" | "streex";
+type IdleSecondaryFeature = "weather-hourly" | "weather-daily" | "streex" | "game-weekend";
 
 const IDLE_SECONDARY_FEATURES: readonly IdleSecondaryFeature[] = [
   "weather-hourly",
@@ -1224,20 +1258,24 @@ const IDLE_SECONDARY_FEATURES: readonly IdleSecondaryFeature[] = [
   "streex",
 ];
 
-function useIdleSecondaryRotation(intervalMs: number) {
+function useIdleSecondaryRotation(intervalMs: number, gameWeekend = false) {
+  const features: readonly IdleSecondaryFeature[] = gameWeekend
+    ? [...IDLE_SECONDARY_FEATURES, "game-weekend"]
+    : IDLE_SECONDARY_FEATURES;
+  const count = features.length;
   const [featureIndex, setFeatureIndex] = useState(0);
 
   useEffect(() => {
     setFeatureIndex(0);
     const timer = window.setInterval(() => {
-      setFeatureIndex((current) => (current + 1) % IDLE_SECONDARY_FEATURES.length);
+      setFeatureIndex((current) => (current + 1) % count);
     }, intervalMs);
 
     return () => window.clearInterval(timer);
-  }, [intervalMs]);
+  }, [intervalMs, count]);
 
   return {
-    feature: IDLE_SECONDARY_FEATURES[featureIndex] ?? "weather-hourly",
+    feature: features[featureIndex] ?? "weather-hourly",
   };
 }
 
@@ -1250,6 +1288,17 @@ function getPassengerGamePresentation(
   icon: React.ReactNode;
   title: string;
 } {
+  if (game === "touchdown-drive" || game === "rivalry-trivia") {
+    return {
+      artwork: "/passenger-game-weekend/stadium.svg",
+      title: game === "touchdown-drive" ? "Touchdown Drive" : "Rivalry Trivia",
+      icon: <Gamepad2 className="h-6 w-6" />,
+      description:
+        t === copy.es
+          ? "Dos desafíos exclusivos. Toca para jugar."
+          : "Two exclusive challenges. Tap to play.",
+    };
+  }
   if (game === "midnight-hunt") {
     return {
       artwork: "/passenger-haunted-night/midnight-gate.webp",
@@ -1321,6 +1370,20 @@ function IdleSecondaryRail({
     );
   const hourlyForecast = weather?.periods.slice(1, 5) ?? [];
   const dailyForecast = weather?.dailyPeriods?.slice(0, 4) ?? [];
+  if (feature === "game-weekend") {
+    return (
+      <div
+        className="passenger-idle-secondary gw-matchup"
+        aria-label="Utah vs BYU game information"
+      >
+        <span className="gw-kicker">RIVALRY WEEKEND · NOV 7</span>
+        <strong>
+          UTAH <i>vs</i> BYU
+        </strong>
+        <span>Rice-Eccles Stadium · 10 AM MT</span>
+      </div>
+    );
+  }
   if (feature === "streex") {
     return (
       <button
@@ -1434,6 +1497,7 @@ function IdlePhoneContinuation({ config, t }: { config: AppConfig; t: (typeof co
 
 function IdleExplorePanel({
   hauntedNight,
+  gameWeekend,
   language,
   onExploreGame,
   onExploreHome,
@@ -1444,6 +1508,7 @@ function IdleExplorePanel({
   t,
 }: {
   hauntedNight: boolean;
+  gameWeekend: boolean;
   language: Language;
   onExploreGame: () => void;
   onExploreHome: () => void;
@@ -1456,14 +1521,24 @@ function IdleExplorePanel({
   const items = [
     {
       icon: hauntedNight ? <MoonStar /> : <Gamepad2 />,
-      label: hauntedNight ? "Midnight Hunt" : t.games,
+      label: hauntedNight
+        ? "Midnight Hunt"
+        : gameWeekend
+          ? language === "es"
+            ? "Juegos Utes"
+            : "Utes games"
+          : t.games,
       detail: hauntedNight
         ? language === "es"
           ? "Toca para jugar · 60 s"
           : "Tap to play · 60 sec"
-        : language === "es"
-          ? "Juega y disfruta"
-          : "Play & enjoy",
+        : gameWeekend
+          ? language === "es"
+            ? "2 juegos · Jugar"
+            : "2 games · Play"
+          : language === "es"
+            ? "Juega y disfruta"
+            : "Play & enjoy",
       onClick: onExploreGame,
     },
     {
@@ -1505,7 +1580,7 @@ function IdleExplorePanel({
                 event.stopPropagation();
                 item.onClick();
               }}
-              className={`passenger-idle-explore-link${hauntedNight && item.onClick === onExploreGame ? " haunted-game-invitation" : ""}`}
+              className={`passenger-idle-explore-link${hauntedNight && item.onClick === onExploreGame ? " haunted-game-invitation" : gameWeekend && item.onClick === onExploreGame ? " gw-game-invitation" : ""}`}
             >
               <span className="passenger-idle-explore-icon" aria-hidden="true">
                 {item.icon}
@@ -1868,6 +1943,7 @@ function HomeView({
   aroundYou,
   config,
   hauntedNight,
+  gameWeekend,
   language,
   spotifyHomePollingEnabled,
   onNavigate,
@@ -1886,6 +1962,7 @@ function HomeView({
   aroundYou: import("./around-you/around-you-types").AroundYouEngineState;
   config: AppConfig;
   hauntedNight: boolean;
+  gameWeekend: boolean;
   language: Language;
   spotifyHomePollingEnabled: boolean;
   onNavigate: (view: View) => void;
@@ -1960,7 +2037,13 @@ function HomeView({
     <div className="passenger-home-layout flex flex-1 flex-col gap-5">
       <section className="passenger-home-hero relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-[#E6CE20]/15 p-6">
         <img
-          src={hauntedNight ? "/passenger-haunted-night/haunted-road.webp" : passengerHomeAirport}
+          src={
+            hauntedNight
+              ? "/passenger-haunted-night/haunted-road.webp"
+              : gameWeekend
+                ? "/passenger-game-weekend/stadium.svg"
+                : passengerHomeAirport
+          }
           alt=""
           aria-hidden="true"
           className="passenger-home-hero-image absolute inset-y-0 right-0 h-full w-[58%] object-cover object-center"
@@ -1974,7 +2057,9 @@ function HomeView({
                 ? language === "es"
                   ? "Una noche. Un viaje diferente."
                   : "One night. A different kind of ride."
-                : t.privateRide}
+                : gameWeekend
+                  ? "STREEX · UTES GAME WEEKEND"
+                  : t.privateRide}
             </p>
             <p className="shrink-0 text-[10px] font-semibold text-white/45">
               {t.hostedBy} {config.ownerName}
@@ -1985,14 +2070,22 @@ function HomeView({
               ? language === "es"
                 ? "Tu viaje. Al caer la noche."
                 : "Your ride. After dark."
-              : t.welcome}
+              : gameWeekend
+                ? language === "es"
+                  ? "Tu viaje. Tu equipo. Tu jugada."
+                  : "Your ride. Your team. Your play."
+                : t.welcome}
           </h1>
           <p className="mt-2 text-base text-white/60">
             {hauntedNight
               ? language === "es"
                 ? "Elige tu música. Disfruta lo inesperado."
                 : "Pick your soundtrack. Enjoy the unexpected."
-              : t.subtitle}
+              : gameWeekend
+                ? language === "es"
+                  ? "Elige tu música. Entra al juego."
+                  : "Pick your soundtrack. Step into the game."
+                : t.subtitle}
           </p>
           <p className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-[#E6CE20]">
             <Sparkles className="h-3.5 w-3.5" />
@@ -3680,6 +3773,7 @@ function SimulatedMusicView({
 
 function GamesView({
   hauntedNight,
+  gameWeekend,
   onMusic,
   language,
   onGameCompleted,
@@ -3694,6 +3788,7 @@ function GamesView({
   phoneContinuation,
 }: {
   hauntedNight: boolean;
+  gameWeekend: boolean;
   onMusic: () => void;
   language: Language;
   onGameCompleted: (game: PassengerGame) => void;
@@ -3715,6 +3810,17 @@ function GamesView({
     onRequestedGameConsumed();
   }, [onRequestedGameConsumed, requestedGame]);
 
+  if (gameWeekend) {
+    return (
+      <GameWeekendGames
+        language={language}
+        initialGame={requestedGame}
+        onOpened={onGameOpened}
+        onStart={onGameStarted}
+        onComplete={onGameCompleted}
+      />
+    );
+  }
   if (hauntedNight) {
     return (
       <MidnightHunt

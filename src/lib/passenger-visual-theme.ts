@@ -1,5 +1,5 @@
 /** Manual, reversible seasonal pilot. B01 scheduling and theme registry remain deferred. */
-export const PASSENGER_VISUAL_THEMES = ["original", "accent", "halloween"] as const;
+export const PASSENGER_VISUAL_THEMES = ["original", "accent", "halloween", "utes-weekend"] as const;
 export type PassengerVisualTheme = (typeof PASSENGER_VISUAL_THEMES)[number];
 
 type ThemeConfig = {
@@ -28,12 +28,17 @@ export function getPassengerThemePresentation(config: ThemeConfig, view: string,
   const surface = idle ? "idle" : view === "home" || view === "music" ? view : null;
   return {
     // Games and every other excluded surface retain their pre-pilot palette.
-    baseTheme: !surface || selected === "halloween" ? baseline : selected,
+    baseTheme:
+      !surface || selected === "halloween" || selected === "utes-weekend" ? baseline : selected,
     hauntedSurface: selected === "halloween" ? surface : null,
+    ...(selected === "utes-weekend" ? { gameWeekendSurface: surface } : {}),
   };
 }
 
-/** The owner's seasonal Games exception; the regular games stay mounted only outside Halloween. */
-export function getPassengerSeasonalGame(config: ThemeConfig): "midnight-hunt" | null {
-  return getPassengerVisualTheme(config) === "halloween" ? "midnight-hunt" : null;
+/** Explicit seasonal exceptions; other selections preserve the regular Games experience. */
+export function getPassengerSeasonalGame(
+  config: ThemeConfig,
+): "midnight-hunt" | "game-weekend" | null {
+  const theme = getPassengerVisualTheme(config);
+  return theme === "halloween" ? "midnight-hunt" : theme === "utes-weekend" ? "game-weekend" : null;
 }

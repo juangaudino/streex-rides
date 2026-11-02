@@ -1,4 +1,4 @@
-import { Check, MoonStar, Palette } from "lucide-react";
+import { Check, MoonStar, Palette, Flag } from "lucide-react";
 import type { PassengerVisualTheme } from "@/lib/passenger-visual-theme";
 
 const themes: {
@@ -30,6 +30,13 @@ const themes: {
       "radial-gradient(circle at 75% 22%,#b8a5df 0 6%,#3c2457 7%,transparent 35%),linear-gradient(145deg,#0d0717,#281430 60%,#7a391c)",
     accent: "#ffab69",
   },
+  {
+    id: "utes-weekend",
+    title: "Utes Game Weekend",
+    description: "Touchdown Drive + Rivalry Trivia",
+    background: "linear-gradient(120deg,#180a16,#a4213d 60%,#192d26)",
+    accent: "#ed3a53",
+  },
 ];
 
 export function PassengerVisualThemeControl({
@@ -50,12 +57,13 @@ export function PassengerVisualThemeControl({
           <h2 className="text-base font-semibold">Tema visual</h2>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/55">
             Independent of Lite / Complete. Save config, then reload Passenger on the tablet.
-            Halloween includes Home, Music, the idle screen and the exclusive Midnight Hunt game.
+            Seasonal editions include Home, Music, the idle screen and exclusive games. Utes Game
+            Weekend has Touchdown Drive and Rivalry Trivia.
           </p>
         </div>
       </div>
       <div
-        className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3"
+        className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
         role="group"
         aria-label="Passenger visual theme"
       >
@@ -77,6 +85,9 @@ export function PassengerVisualThemeControl({
                 className="absolute bottom-4 right-4 h-7 w-[22%] rounded-lg"
                 style={{ background: theme.accent }}
               />
+              {theme.id === "utes-weekend" ? (
+                <Flag className="absolute left-4 top-4 h-5 w-5 text-[#ffd4cc]" />
+              ) : null}
               {theme.id === "halloween" ? (
                 <MoonStar className="absolute left-4 top-4 h-5 w-5 text-[#ffba81]" />
               ) : null}
