@@ -85,3 +85,13 @@ Real local screenshots (not mockups):
 - [Compact Drive / motion reduction fixture](evidence/passenger-utes-weekend/drive-1024-reduced-motion.jpg)
 - [Compact Spanish Trivia](evidence/passenger-utes-weekend/trivia-1024-spanish.jpg)
 - [Machine-readable local observations](evidence/passenger-utes-weekend/qa-results.json)
+
+## November 3 — Rivalry Trivia broadcast graphics (local)
+
+Owner requested team logos and mascot drawings with a sports-broadcast look. Trivia's menu art and intro now use a crimson Utah / blue BYU matchup board, with a central VS badge, the official Utah interlocking-U mark, Swoop flag illustration, BYU oval Y and the original navy Sailor Cougar artwork. The question header includes two compact team marks. No ESPN logo or affiliation is represented.
+
+Assets are bundled under `public/passenger-game-weekend/`; no runtime hotlinks or additional API requests. Sources and the exact vector extraction adaptation are recorded in [brand-sources.json](../public/passenger-game-weekend/brand-sources.json). Utah/Swoop files are unmodified; BYU's official presentation SVGs were reduced to their named original artwork groups, removing clear-space diagrams and transparent margins without redrawing paths or recoloring marks. Primary source pages: [Swoop](https://www.swoop.utah.edu/), [BYU athletic marks](https://brand.byu.edu/unit-logos/athletics), [Utah Athletics](https://utahutes.com/).
+
+Only visual presentation/assets changed. Questions, timer, scoring, Top 10, Touchdown Drive and other Passenger screens retain their implementation. Validated locally at 1280×800 and 1024×640: all four graphics loaded, no horizontal overflow, answer feedback/Next/menu navigation functional, no console warnings/errors. Existing 128 tests/128,628 assertions, TypeScript, focused lint, production build and diff check pass. Local service fixtures only; no push, merge, deployment or production writes.
+
+Actual screenshots: [menu](evidence/passenger-utes-weekend/trivia-branding/games-menu.jpg), [intro](evidence/passenger-utes-weekend/trivia-branding/trivia-intro.jpg), [question header](evidence/passenger-utes-weekend/trivia-branding/trivia-question.jpg), [compact intro](evidence/passenger-utes-weekend/trivia-branding/intro-1024.jpg), [compact question](evidence/passenger-utes-weekend/trivia-branding/question-1024.jpg).

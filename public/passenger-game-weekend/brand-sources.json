@@ -1,0 +1,15 @@
+{
+  "retrieved": "2026-11-03",
+  "assets": {
+    "utah-logo.svg": "https://utahutes.com/images/integration_2026/logo_main.svg",
+    "byu-logo.svg": "https://brightspotcdn.byu.edu/2f/fa/15ba512042adaa05b60e9191ba0d/stretch-y.svg",
+    "swoop.png": "https://www.swoop.utah.edu/wp-content/uploads/2025/02/swoop-flag-uu-2.png",
+    "cougar-head.svg": "https://brightspotcdn.byu.edu/02/eb/985fba5c4613a0d93b95fb3673c4/cougar-head.svg"
+  },
+  "pages": [
+    "https://utahutes.com/",
+    "https://www.swoop.utah.edu/",
+    "https://brand.byu.edu/unit-logos/athletics"
+  ],
+  "adaptation": "BYU presentation SVGs: retain the named original navy artwork group only, remove clear-space diagrams and crop transparent margins; original vector paths/colors unchanged. Utah/Swoop assets unmodified."
+}

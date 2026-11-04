@@ -1332,3 +1332,223 @@
 .passenger-console-theme[data-passenger-edition="utes-weekend"] .gw-matchup {
   background: linear-gradient(115deg, #611226, #210d18) !important;
 }
+/* Rivalry Trivia: broadcast-style matchup art using locally bundled school marks. */
+.gw-rivalry-art {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  width: 100%;
+  height: 100%;
+  min-height: 230px;
+  isolation: isolate;
+  overflow: hidden;
+  background: #0b1428;
+}
+.gw-rivalry-team {
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  background: linear-gradient(120deg, #74152e, #c42c46 70%, #77122b);
+}
+.gw-rivalry-team::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(135deg, transparent 0 18px, #ffffff05 18px 20px);
+  pointer-events: none;
+}
+.gw-rivalry-team--byu {
+  background: linear-gradient(120deg, #101b3a, #1252a0 75%, #0c2f69);
+  border-top: 2px solid #ffd5b766;
+}
+.gw-rivalry-logo {
+  position: absolute;
+  top: 14px;
+  left: 15px;
+  width: 56px;
+  height: 44px;
+  object-fit: contain;
+  z-index: 2;
+}
+.gw-rivalry-team--byu > .gw-rivalry-logo {
+  background: #fffffff5;
+  border-radius: 9px;
+  padding: 7px;
+  width: 66px;
+  height: 45px;
+  box-shadow: 0 3px 12px #0003;
+}
+.gw-rivalry-mascot {
+  object-fit: contain;
+  filter: drop-shadow(0 6px 10px #0005);
+}
+.gw-rivalry-swoop {
+  position: absolute;
+  right: 4px;
+  bottom: -10px;
+  width: 65%;
+  height: 95%;
+  object-position: bottom right;
+}
+.gw-rivalry-cougar-plate {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 55%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 20%, #fff, #dbe5f5);
+  box-shadow:
+    inset 0 2px #fff,
+    0 8px 22px #020b234d;
+}
+.gw-rivalry-cougar-plate > img {
+  width: 83%;
+  height: 83%;
+  filter: none;
+}
+.gw-rivalry-name {
+  position: absolute;
+  left: 15px;
+  bottom: 19px;
+  z-index: 3;
+  line-height: 0.95;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #fff;
+  text-shadow: 0 2px 12px #0007;
+}
+.gw-rivalry-name small {
+  display: block;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  margin-top: 7px;
+  color: #d9e3f3;
+}
+.gw-rivalry-versus {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 31px;
+  border: 1px solid #f7d2b680;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #231522, #0e172b);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffe4cd;
+  box-shadow: 0 4px 14px #0005;
+}
+.gw-card-art > .gw-rivalry-art {
+  align-self: stretch;
+}
+.gw-intro-emblem--rivalry {
+  display: block;
+  top: 14%;
+  bottom: 10%;
+  right: 4%;
+  width: 32%;
+  transform: rotate(-3deg);
+  border: 1px solid #ffb8a757;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px #0006;
+}
+.gw-intro-emblem--rivalry .gw-rivalry-logo {
+  width: 80px;
+  height: 62px;
+  top: 22px;
+  left: 23px;
+}
+.gw-intro-emblem--rivalry .gw-rivalry-team--byu > .gw-rivalry-logo {
+  width: 84px;
+  height: 56px;
+}
+.gw-intro-emblem--rivalry .gw-rivalry-name {
+  font-size: 30px;
+  left: 23px;
+  bottom: 26px;
+}
+.gw-intro-emblem--rivalry .gw-rivalry-name small {
+  font-size: 10px;
+}
+.gw-intro-emblem--rivalry .gw-rivalry-cougar-plate {
+  right: 18px;
+  width: 51%;
+}
+.gw-intro-emblem--rivalry .gw-rivalry-versus {
+  width: 56px;
+  height: 38px;
+  font-size: 16px;
+}
+.gw-rivalry-bug {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
+  color: #dac4d3;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.gw-rivalry-bug > img {
+  width: 42px;
+  height: 33px;
+  object-fit: contain;
+}
+.gw-rivalry-bug > img:last-child {
+  background: #fff;
+  border-radius: 5px;
+  padding: 5px;
+  width: 48px;
+}
+.gw-game-bar--rivalry .gw-clock {
+  margin-left: 10px;
+}
+@media (max-height: 720px) and (min-width: 900px) {
+  .gw-intro-emblem--rivalry {
+    top: 18%;
+    bottom: 9%;
+  }
+  .gw-intro-emblem--rivalry .gw-rivalry-logo {
+    width: 62px;
+    height: 44px;
+    left: 16px;
+    top: 13px;
+  }
+  .gw-intro-emblem--rivalry .gw-rivalry-team--byu > .gw-rivalry-logo {
+    width: 64px;
+    height: 42px;
+  }
+  .gw-intro-emblem--rivalry .gw-rivalry-name {
+    font-size: 25px;
+    left: 16px;
+    bottom: 20px;
+  }
+}
+@media (max-width: 800px) {
+  .gw-intro-emblem--rivalry {
+    opacity: 0.32;
+  }
+  .gw-game-card--1 .gw-rivalry-art {
+    min-height: 230px;
+  }
+}
+@media (max-width: 560px) {
+  .gw-rivalry-bug {
+    display: none;
+  }
+  .gw-game-bar--rivalry .gw-clock {
+    margin-left: auto;
+  }
+}

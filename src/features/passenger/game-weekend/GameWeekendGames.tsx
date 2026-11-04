@@ -4,7 +4,6 @@ import {
   ArrowRight,
   Check,
   Flag,
-  HelpCircle,
   Pause,
   Play,
   RotateCcw,
@@ -61,6 +60,40 @@ function useGameClock(
     };
   }, [phase, dispatch]);
 }
+function RivalryMatchupArt() {
+  return (
+    <div className="gw-rivalry-art" aria-hidden="true">
+      <div className="gw-rivalry-team gw-rivalry-team--utah">
+        <img className="gw-rivalry-logo" src="/passenger-game-weekend/utah-logo.svg" alt="" />
+        <img
+          className="gw-rivalry-mascot gw-rivalry-swoop"
+          src="/passenger-game-weekend/swoop.png"
+          alt=""
+          decoding="async"
+        />
+        <span className="gw-rivalry-name">
+          UTAH<small>UTES</small>
+        </span>
+      </div>
+      <span className="gw-rivalry-versus">VS</span>
+      <div className="gw-rivalry-team gw-rivalry-team--byu">
+        <img className="gw-rivalry-logo" src="/passenger-game-weekend/byu-logo.svg" alt="" />
+        <span className="gw-rivalry-cougar-plate">
+          <img
+            className="gw-rivalry-mascot"
+            src="/passenger-game-weekend/cougar-head.svg"
+            alt=""
+            decoding="async"
+          />
+        </span>
+        <span className="gw-rivalry-name">
+          BYU<small>COUGARS</small>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function FootballIcon() {
   return (
     <svg viewBox="0 0 100 60" fill="none" aria-hidden="true">
@@ -148,13 +181,7 @@ export function GameWeekendGames({
                   <span className="gw-art-word">TOUCHDOWN</span>
                 </>
               ) : (
-                <>
-                  <span className="gw-trivia-vs">
-                    UTAH <i>vs</i> BYU
-                  </span>
-                  <span className="gw-art-word">KNOW THE RIVALRY</span>
-                  <HelpCircle size={64} />
-                </>
+                <RivalryMatchupArt />
               )}
             </div>
             <div className="gw-card-info">
@@ -205,7 +232,7 @@ function GameTopBar({
   onExit: () => void;
 }) {
   return (
-    <header className="gw-game-bar">
+    <header className={`gw-game-bar${title === "Rivalry Trivia" ? " gw-game-bar--rivalry" : ""}`}>
       <button
         className="gw-icon-button"
         onClick={onExit}
@@ -217,6 +244,13 @@ function GameTopBar({
         <span className="gw-kicker">UTES GAME WEEKEND</span>
         <h2>{title}</h2>
       </div>
+      {title === "Rivalry Trivia" ? (
+        <span className="gw-rivalry-bug" aria-label="Utah Utes vs BYU Cougars">
+          <img src="/passenger-game-weekend/utah-logo.svg" alt="Utah Utes" />
+          <span>VS</span>
+          <img src="/passenger-game-weekend/byu-logo.svg" alt="BYU Cougars" />
+        </span>
+      ) : null}
       <span className="gw-clock" data-warning={seconds <= 10}>
         {String(seconds).padStart(2, "0")}
         <small>s</small>
@@ -279,18 +313,12 @@ function Intro({
             : "Your music keeps playing. No added audio."}
         </small>
       </div>
-      <div className="gw-intro-emblem" aria-hidden="true">
+      <div
+        className={`gw-intro-emblem${trivia ? " gw-intro-emblem--rivalry" : ""}`}
+        aria-hidden="true"
+      >
         {trivia ? (
-          <>
-            <HelpCircle />
-            <b>
-              UTAH
-              <br />
-              <i>vs</i>
-              <br />
-              BYU
-            </b>
-          </>
+          <RivalryMatchupArt />
         ) : (
           <>
             <FootballIcon />
