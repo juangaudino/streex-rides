@@ -1,4 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import {
+  createSpotifySession,
+  createSpotifyRequestScope,
+  isSpotifySnapshotUnconfirmed,
+} from "./spotify-session";
 import type { AppConfig } from "@/config";
 import {
   getPassengerSeasonalGame,
@@ -412,6 +426,8 @@ const copy = {
     idleDimAction: "Tap to dim",
     idleDimWake: "Tap anywhere to wake the screen",
     idleNowPlaying: "Now playing on Streex",
+    musicRefreshDelayed: "Updating playback… Last known information.",
+    musicRefreshPending: "Updating…",
     idleMusicReady: "Your Streex soundtrack",
     idleMusicPrompt: "Your soundtrack starts here",
     idleChooseMusic: "Choose the soundtrack for your ride",
@@ -618,6 +634,8 @@ const copy = {
     idleDimAction: "Toca para oscurecer",
     idleDimWake: "Toca en cualquier lugar para activar la pantalla",
     idleNowPlaying: "Reproduciendo en Streex",
+    musicRefreshDelayed: "Actualizando reproducción… Última información disponible.",
+    musicRefreshPending: "Actualizando…",
     idleMusicReady: "Tu banda sonora Streex",
     idleMusicPrompt: "Tu banda sonora empieza aquí",
     idleChooseMusic: "Elige la música para tu viaje",
@@ -630,7 +648,16 @@ const copy = {
   },
 } as const;
 
-export function PassengerConsole({ config }: PassengerConsoleProps) {
+export function PassengerConsole(props: PassengerConsoleProps) {
+  const [session] = useState(() => createSpotifySession(getSharedPersonalSpotifyPlayback));
+  return (
+    <SpotifySessionContext.Provider value={session}>
+      <PassengerConsoleContent {...props} />
+    </SpotifySessionContext.Provider>
+  );
+}
+
+function PassengerConsoleContent({ config }: PassengerConsoleProps) {
   const [language, setLanguage] = useState<Language>("en");
   const [view, setView] = useState<View>("home");
   const [requestedGame, setRequestedGame] = useState<PassengerGame | null>(null);
@@ -1637,7 +1664,7 @@ function IdleSpotifyNowPlaying({
   onExploreMusic: () => void;
   t: (typeof copy)[Language];
 }) {
-  const [status, setStatus] = useState<SpotifyPlaybackState | null>(null);
+  const { status, refreshFailed, refreshPlayback } = useSpotifySession();
   const [busy, setBusy] = useState(false);
   const isMountedRef = useRef(false);
   const lifecycleRef = useRef(0);
@@ -1646,7 +1673,6 @@ function IdleSpotifyNowPlaying({
   > | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
     const lifecycle = ++lifecycleRef.current;
     isMountedRef.current = true;
     const postControlRefresh = createSpotifyPostControlRefreshScheduler({
@@ -1657,10 +1683,9 @@ function IdleSpotifyNowPlaying({
 
     const refresh = async () => {
       try {
-        const next = await getSharedPersonalSpotifyPlayback();
-        if (isMounted) setStatus(next);
+        await refreshPlayback();
       } catch {
-        if (isMounted) setStatus(null);
+        // The session clears unavailable playback on failure.
       }
     };
 
@@ -1671,7 +1696,6 @@ function IdleSpotifyNowPlaying({
       refreshOnlyWhenVisible: true,
     });
     return () => {
-      isMounted = false;
       isMountedRef.current = false;
       if (lifecycleRef.current === lifecycle) lifecycleRef.current += 1;
       postControlRefresh.dispose();
@@ -1680,7 +1704,7 @@ function IdleSpotifyNowPlaying({
       }
       stopPolling();
     };
-  }, [enabled]);
+  }, [enabled, refreshPlayback]);
 
   const playback = status?.state === "ready" ? status.playback : null;
   const track = playback?.track ?? null;
@@ -1689,7 +1713,7 @@ function IdleSpotifyNowPlaying({
   const liveProgressMs = useInterpolatedSpotifyProgress(
     track?.progressMs,
     track?.durationMs,
-    playback?.isPlaying,
+    playback?.isPlaying && !refreshFailed,
   );
   const trackProgress = track?.durationMs
     ? Math.min(100, Math.max(0, (liveProgressMs / track.durationMs) * 100))
@@ -1703,9 +1727,9 @@ function IdleSpotifyNowPlaying({
       if (!isMountedRef.current || lifecycleRef.current !== lifecycle) return;
       postControlRefreshRef.current?.schedule(
         command === "next" ? 800 : 300,
-        getSharedPersonalSpotifyPlayback,
-        setStatus,
-        () => setStatus(null),
+        refreshPlayback,
+        () => {},
+        () => {},
       );
     } finally {
       if (isMountedRef.current && lifecycleRef.current === lifecycle) setBusy(false);
@@ -1750,18 +1774,20 @@ function IdleSpotifyNowPlaying({
       <span className="passenger-idle-track-copy min-w-0">
         <span className="passenger-idle-now-playing-row flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-[0.22em] text-[#E6CE20]">
           <span className="flex items-center gap-3">
-            {playback?.isPlaying && (
+            {playback?.isPlaying && !refreshFailed && (
               <span className="flex h-5 items-end gap-1" aria-hidden="true">
                 <span className="h-2 w-1 animate-pulse rounded-full bg-[#E6CE20]" />
                 <span className="h-5 w-1 animate-pulse rounded-full bg-[#E6CE20]" />
                 <span className="h-3 w-1 animate-pulse rounded-full bg-[#E6CE20]" />
               </span>
             )}
-            {playback?.isPlaying
-              ? t.idleNowPlaying
-              : isDiscoverable
-                ? t.idleMusicPrompt
-                : t.idleMusicReady}
+            {refreshFailed
+              ? t.musicRefreshDelayed
+              : playback?.isPlaying
+                ? t.idleNowPlaying
+                : isDiscoverable
+                  ? t.idleMusicPrompt
+                  : t.idleMusicReady}
           </span>
           <span className="passenger-idle-quick-actions">
             <button
@@ -1862,7 +1888,11 @@ function IdleSpotifyNowPlaying({
           </span>
         )}
         {track ? (
-          <MusicVisualizer active={Boolean(playback?.isPlaying)} compact palette={artworkPalette} />
+          <MusicVisualizer
+            active={Boolean(playback?.isPlaying) && !refreshFailed}
+            compact
+            palette={artworkPalette}
+          />
         ) : null}
       </span>
     </>
@@ -2707,6 +2737,51 @@ type SpotifyPlaybackState =
       };
     };
 
+const SpotifySessionContext = createContext<ReturnType<
+  typeof createSpotifySession<SpotifyPlaybackState>
+> | null>(null);
+
+function useSpotifySession() {
+  const session = useContext(SpotifySessionContext);
+  if (!session) throw new Error("Spotify session requires PassengerConsole");
+  const snapshot = useSyncExternalStore(
+    session.subscribe,
+    session.getSnapshot,
+    session.getSnapshot,
+  );
+  const presentation = useMemo(() => {
+    const value = snapshot.value;
+    const refreshFailed = isSpotifySnapshotUnconfirmed(snapshot, Date.now());
+    if (
+      refreshFailed ||
+      value?.state !== "ready" ||
+      !value.playback.isPlaying ||
+      !value.playback.track
+    )
+      return { status: value, refreshFailed };
+    const track = value.playback.track;
+    if (track.progressMs == null || track.durationMs == null)
+      return { status: value, refreshFailed };
+    return {
+      refreshFailed,
+      status: {
+        ...value,
+        playback: {
+          ...value.playback,
+          track: {
+            ...track,
+            progressMs: Math.min(
+              track.durationMs,
+              track.progressMs + Math.max(0, Date.now() - snapshot.receivedAt),
+            ),
+          },
+        },
+      },
+    };
+  }, [snapshot]);
+  return { ...presentation, refreshPlayback: session.refresh };
+}
+
 const passengerRepeatEnableRetryGate = createPassengerRepeatRetryGate();
 const passengerRepeatRestoreRetryGate = createPassengerRepeatRetryGate();
 
@@ -3110,18 +3185,14 @@ function PersonalSpotifyHomeCard({
   pollingEnabled: boolean;
   t: (typeof copy)[Language];
 }) {
-  const [status, setStatus] = useState<SpotifyPlaybackState | null>(null);
+  const { status, refreshFailed, refreshPlayback } = useSpotifySession();
 
   useEffect(() => {
-    let isMounted = true;
-
     const refresh = async () => {
       try {
-        const next = await getSharedPersonalSpotifyPlayback();
-        if (isMounted) setStatus(next);
+        await refreshPlayback();
       } catch {
         // The detailed recovery state stays in Music; Home remains a safe entry point.
-        if (isMounted) setStatus(null);
       }
     };
 
@@ -3131,10 +3202,9 @@ function PersonalSpotifyHomeCard({
       enabled: pollingEnabled,
     });
     return () => {
-      isMounted = false;
       stopPolling();
     };
-  }, [pollingEnabled]);
+  }, [pollingEnabled, refreshPlayback]);
 
   const playback = status?.state === "ready" ? status.playback : null;
   const track = playback?.track ?? null;
@@ -3160,7 +3230,7 @@ function PersonalSpotifyHomeCard({
       )}
       <span className="relative min-w-0 flex-1">
         <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#E6CE20]">
-          {t.nowPlaying}
+          {refreshFailed ? t.musicRefreshDelayed : t.nowPlaying}
         </span>
         <span className="mt-2 block truncate text-xl font-black tracking-tight">
           {track?.title ?? t.chooseMusic}
@@ -3201,7 +3271,7 @@ function PersonalSpotifyMusicView({
   searchResultLimit: number;
   t: (typeof copy)[Language];
 }) {
-  const [status, setStatus] = useState<SpotifyPlaybackState | null>(null);
+  const { status, refreshFailed, refreshPlayback } = useSpotifySession();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -3210,21 +3280,33 @@ function PersonalSpotifyMusicView({
   const [searching, setSearching] = useState(false);
   const [playlistArtwork, setPlaylistArtwork] = useState<Record<string, string | null>>({});
 
+  const scopeRef = useRef<ReturnType<typeof createSpotifyRequestScope> | null>(null);
+  const commandBusyRef = useRef(false);
+  useEffect(() => {
+    const scope = createSpotifyRequestScope({
+      setTimeout: (callback, delayMs) => window.setTimeout(callback, delayMs),
+      clearTimeout: (timer) => window.clearTimeout(timer),
+    });
+    scopeRef.current = scope;
+    return () => scope.dispose();
+  }, []);
+
   const refresh = useCallback(
     async (silent = false) => {
+      const scope = scopeRef.current;
+      if (!scope?.isActive()) return null;
       if (!silent) setError(null);
       try {
-        const next = await getSharedPersonalSpotifyPlayback();
-        setStatus(next);
+        const next = await refreshPlayback();
         return next;
       } catch (requestError) {
-        if (!silent) {
+        if (scope.isActive() && !silent) {
           setError(requestError instanceof Error ? requestError.message : t.spotifyControlError);
         }
         return null;
       }
     },
-    [t.spotifyControlError],
+    [refreshPlayback, t.spotifyControlError],
   );
 
   useEffect(() => {
@@ -3262,38 +3344,51 @@ function PersonalSpotifyMusicView({
     return `${artist}\u0000${title}`;
   };
 
-  const refreshUntilTrackChanges = async (previousTrackKey: string | null) => {
+  const refreshUntilTrackChanges = async (
+    previousTrackKey: string | null,
+    scope: ReturnType<typeof createSpotifyRequestScope>,
+  ) => {
     for (const delay of [500, 800, 1_200]) {
-      await new Promise((resolve) => window.setTimeout(resolve, delay));
+      if (!(await scope.wait(delay))) return;
       const next = await refresh(true);
+      if (!scope.isActive()) return;
       const nextTrackKey = trackKey(next);
       if (nextTrackKey && nextTrackKey !== previousTrackKey) return;
     }
   };
 
   const control = async (command: "play" | "pause" | "next") => {
+    const scope = scopeRef.current;
+    if (!scope?.isActive() || commandBusyRef.current) return;
+    commandBusyRef.current = true;
     setBusy(true);
     setError(null);
     try {
       const previousTrackKey = trackKey(status);
       await controlPersonalSpotifyPlayback({ data: { command } });
       onMusicAction(command);
+      if (!scope.isActive()) return;
       if (command === "next") {
-        await refreshUntilTrackChanges(previousTrackKey);
+        await refreshUntilTrackChanges(previousTrackKey, scope);
       } else {
-        await new Promise((resolve) => window.setTimeout(resolve, 300));
-        await refresh();
+        if (await scope.wait(300)) await refresh();
       }
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : t.spotifyControlError);
+      if (scope.isActive())
+        setError(requestError instanceof Error ? requestError.message : t.spotifyControlError);
     } finally {
-      setBusy(false);
+      commandBusyRef.current = false;
+      if (scope.isActive()) setBusy(false);
     }
   };
 
   const searchTracks = async (rawQuery: string) => {
+    const scope = scopeRef.current;
+    if (!scope?.isActive()) return;
+    const isCurrent = scope.latest();
     const normalizedQuery = rawQuery.trim();
     if (normalizedQuery.length < 2) {
+      setSearching(false);
       setResults([]);
       setSearchMessage(t.searchMinLength);
       return;
@@ -3306,14 +3401,17 @@ function PersonalSpotifyMusicView({
       const response = await searchPersonalSpotifyTracks({
         data: { query: normalizedQuery, limit: searchResultLimit, market: catalogMarket },
       });
-      setResults(response.tracks);
       onMusicAction("search");
+      if (!isCurrent()) return;
+      setResults(response.tracks);
       setSearchMessage(response.tracks.length ? null : t.searchEmpty);
     } catch (requestError) {
+      if (!isCurrent()) return;
       setResults([]);
-      setError(requestError instanceof Error ? requestError.message : t.spotifyControlError);
+      if (scope.isActive())
+        setError(requestError instanceof Error ? requestError.message : t.spotifyControlError);
     } finally {
-      setSearching(false);
+      if (isCurrent()) setSearching(false);
     }
   };
 
@@ -3328,6 +3426,9 @@ function PersonalSpotifyMusicView({
   };
 
   const playTrack = async (uri: string, albumUri: string) => {
+    const scope = scopeRef.current;
+    if (!scope?.isActive() || commandBusyRef.current) return;
+    commandBusyRef.current = true;
     setBusy(true);
     setError(null);
     const storage = getPassengerRepeatStorage() ?? unavailableStorage;
@@ -3345,14 +3446,17 @@ function PersonalSpotifyMusicView({
       const previousTrackKey = trackKey(status);
       await playPersonalSpotifyTrack({ data: { uri, albumUri } });
       onMusicAction("play");
-      await refreshUntilTrackChanges(previousTrackKey);
+      if (!scope.isActive()) return;
+      await refreshUntilTrackChanges(previousTrackKey, scope);
     } catch (requestError) {
       if (isSamePassengerRepeatSession(readPassengerRepeatSession(storage), nextRepeatSession)) {
         writePassengerRepeatSession(storage, previousRepeatSession);
       }
-      setError(requestError instanceof Error ? requestError.message : t.spotifyControlError);
+      if (scope.isActive())
+        setError(requestError instanceof Error ? requestError.message : t.spotifyControlError);
     } finally {
-      setBusy(false);
+      commandBusyRef.current = false;
+      if (scope.isActive()) setBusy(false);
     }
   };
 
@@ -3366,7 +3470,7 @@ function PersonalSpotifyMusicView({
   const liveProgressMs = useInterpolatedSpotifyProgress(
     playback?.track?.progressMs,
     playback?.track?.durationMs,
-    playback?.isPlaying,
+    playback?.isPlaying && !refreshFailed,
   );
   const trackProgress = playback?.track?.durationMs
     ? Math.min(100, Math.max(0, (liveProgressMs / playback.track.durationMs) * 100))
@@ -3403,7 +3507,7 @@ function PersonalSpotifyMusicView({
           <div className="passenger-music-player-header relative min-w-0">
             <div className="min-w-0">
               <p className="passenger-music-now-playing-eyebrow text-[10px] font-semibold uppercase tracking-[0.18em] text-[#E6CE20]">
-                {t.nowPlaying}
+                {refreshFailed ? t.musicRefreshDelayed : t.nowPlaying}
               </p>
               <SpotifyMarquee className="passenger-music-track-title mt-2 font-black leading-[1.04] tracking-tight">
                 {playback.track?.title ?? t.chooseMusic}
@@ -3442,7 +3546,11 @@ function PersonalSpotifyMusicView({
               {playback.track ? (
                 <>
                   <p className="passenger-music-playing-status mt-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#E6CE20]">
-                    {playback.isPlaying ? t.spotifyPlaying : t.spotifyPaused}
+                    {refreshFailed
+                      ? t.musicRefreshPending
+                      : playback.isPlaying
+                        ? t.spotifyPlaying
+                        : t.spotifyPaused}
                   </p>
                   {trackProgress !== null && (
                     <div
@@ -3496,7 +3604,10 @@ function PersonalSpotifyMusicView({
               </div>
             </div>
           </div>
-          <MusicVisualizer active={Boolean(playback.isPlaying)} palette={artworkPalette} />
+          <MusicVisualizer
+            active={Boolean(playback.isPlaying) && !refreshFailed}
+            palette={artworkPalette}
+          />
         </section>
       ) : (
         <section className="passenger-music-playback passenger-music-now-playing flex min-h-[280px] flex-col items-center justify-center rounded-[28px] border border-white/10 bg-white/[0.05] p-5 text-sm text-white/60">
@@ -3551,7 +3662,11 @@ function PersonalSpotifyMusicView({
           >
             <input
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                scopeRef.current?.latest();
+                setQuery(event.target.value);
+                setSearching(false);
+              }}
               maxLength={100}
               placeholder={t.search}
               aria-label={t.searchSpotify}

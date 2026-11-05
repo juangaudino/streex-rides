@@ -24,6 +24,8 @@ const track = {
 };
 let playing = true;
 let currentTrack = track;
+let musicFailure = false;
+let playbackCalls = 0;
 
 export function readLocalConfig() {
   const override = SiteConfigOverrideSchema.parse(
@@ -40,6 +42,17 @@ export function readLocalConfig() {
 }
 
 export function prepareLocalFixture(params: URLSearchParams) {
+  if (params.get("music-validation") === "1") {
+    const toggle = document.createElement("button");
+    toggle.textContent = "Simulate Spotify failure";
+    toggle.style.cssText =
+      "position:fixed;right:12px;bottom:2px;z-index:999;background:#282032;color:white;font-size:10px;padding:4px";
+    toggle.onclick = () => {
+      musicFailure = !musicFailure;
+      toggle.textContent = musicFailure ? "Restore Spotify fixture" : "Simulate Spotify failure";
+    };
+    document.body.append(toggle);
+  }
   const override = JSON.parse(localStorage.getItem(storageKey) || "{}");
   const theme = params.get("theme");
   const mode = params.get("mode");
@@ -83,6 +96,31 @@ export async function callLocalFixture(name: string, input?: { data?: Record<str
     const override = SiteConfigOverrideSchema.parse(input?.data?.config);
     localStorage.setItem(storageKey, JSON.stringify(override));
     return { ok: true, config: readLocalConfig() };
+  }
+  const musicValidation =
+    new URLSearchParams(window.location.search).get("music-validation") === "1";
+  if (musicValidation && name === "getPersonalSpotifyPlayback") {
+    document.documentElement.dataset.qaPlaybackRequests = String(++playbackCalls);
+    await new Promise((resolve) => window.setTimeout(resolve, 1500));
+    if (musicFailure) throw new Error("Local Spotify fixture unavailable");
+  }
+  if (musicValidation && name === "searchPersonalSpotifyTracks") {
+    const query = String(input?.data?.query ?? "");
+    await new Promise((resolve) => window.setTimeout(resolve, query === "slow" ? 2000 : 50));
+    return {
+      tracks: [
+        {
+          ...track,
+          id: query,
+          title: query,
+          albumUri: "spotify:album:abcdefghijklmnopqrstuv",
+          explicit: false,
+        },
+      ],
+    };
+  }
+  if (musicValidation && name === "controlPersonalSpotifyPlayback") {
+    await new Promise((resolve) => window.setTimeout(resolve, 800));
   }
   if (name === "getPersonalSpotifyPlayback")
     return {

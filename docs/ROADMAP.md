@@ -91,7 +91,7 @@ Gate G1: F1–F3 con pruebas de errores/concurrencia/aislamiento, QA autenticado
 | ---- | -------------------------------------------------------------------- | ------------ | ------------------------------------------------------------- |
 | PA01 | Exactitud analytics por agregación/paginación                        | P1           | PLANIFICADA; preservar cutoff/engagements existentes          |
 | PA02 | Pairing/ingesta confiable y recuperación para la tablet actual       | P1           | PLANIFICADA; sin plataforma de flotas ni re-pairing rutinario |
-| UX04 | Music: acabado propio, estados y descubrimiento coherentes           | P1 producto  | PLANIFICADA; conservar fuente Spotify y personalidad STREEX   |
+| UX04 | Music: acabado propio, estados y descubrimiento coherentes           | P1 producto  | PARCIAL LOCAL — continuidad Music/async aprobada 2026-11-05; ver [checkpoint](PASSENGER_2_MUSIC_CONTINUITY.md); resto UX04 y gates pendientes   |
 | UX05 | Passenger Home/idle/navegación/fallback y accesibilidad              | P1 producto  | PLANIFICADA; Clima se usa como referencia, no se rediseña     |
 | H01  | Horizon: test harness, tiempo activo, score independiente de FPS     | P1 funcional | PLANIFICADA; decidir convivencia con récords legacy           |
 | H02  | Horizon: ranking veraz, onboarding/HUD/resultados, responsive propio | P2           | PLANIFICADA; sin rehacer renderer ni duplicar pagos/contacto  |
