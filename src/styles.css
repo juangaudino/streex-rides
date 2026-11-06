@@ -10438,3 +10438,89 @@ button.passenger-idle-music {
     animation: none;
   }
 }
+
+/* Passenger UX05: keyboard-only cues, scoped to Home, navigation and Idle. */
+.passenger-console-shell main:focus {
+  outline: none;
+}
+:where(.passenger-idle-prompt, .passenger-console-shell[data-view="home"]) button:focus-visible,
+.passenger-console-shell nav button:focus-visible {
+  outline: 3px solid #ffe16b;
+  outline-offset: -3px;
+}
+
+/* Keep the Idle controls and phone QR visible on shorter landscape displays. */
+@media (orientation: landscape) and (min-width: 900px) and (max-height: 700px) {
+  .passenger-idle-prompt .passenger-idle-music {
+    align-items: center;
+    padding-block: 0.8rem !important;
+  }
+  .passenger-idle-prompt .passenger-idle-artwork {
+    width: min(100%, 34dvh);
+  }
+  .passenger-idle-content--music .passenger-idle-now-playing-row {
+    margin-top: 0;
+  }
+  .passenger-idle-content--music .passenger-idle-dim-action {
+    min-height: 44px;
+    padding: 0.45rem 0.8rem;
+  }
+  .passenger-idle-content--music .passenger-idle-track-copy > .passenger-idle-track-title {
+    margin-top: 0.25rem !important;
+    font-size: clamp(1.6rem, 3.2vw, 2.1rem) !important;
+  }
+  .passenger-idle-content--music .passenger-idle-track-details {
+    margin-top: 0.2rem;
+  }
+  .passenger-idle-content--music .passenger-idle-track-details > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .passenger-idle-content--music .passenger-idle-track-details > span:first-child {
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+  .passenger-idle-content--music .passenger-idle-track-details > span + span {
+    margin-top: 0;
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+  .passenger-idle-content--music .passenger-idle-progress,
+  .passenger-idle-content--music .passenger-idle-playback-controls {
+    margin-top: 0.4rem;
+  }
+  .passenger-idle-content--music .passenger-idle-progress > span:last-child {
+    margin-top: 0.2rem;
+  }
+  .passenger-idle-content--music .passenger-music-visualizer--compact {
+    height: 1.5rem !important;
+    margin-top: 0.25rem !important;
+    padding-bottom: 0.2rem !important;
+  }
+  .passenger-idle-content--music .passenger-music-visualizer--compact > span {
+    max-height: 100%;
+  }
+  .passenger-idle-glance {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .passenger-idle-glance-rotating {
+    min-height: 0;
+    overflow: hidden;
+    padding: 1.5rem 0.55rem 0.35rem;
+  }
+  .passenger-idle-phone-continuation {
+    min-height: 0;
+    gap: 0.45rem;
+    padding: 0.5rem;
+  }
+  .passenger-idle-secondary--weather.passenger-idle-secondary--forecast {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .passenger-idle-secondary--weather .passenger-idle-forecast {
+    min-height: 0;
+    border-top: 0;
+    border-left: 1px solid rgb(255 255 255 / 0.1);
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "beforeTab": {
+    "engagements": "[]",
+    "events": "[]"
+  },
+  "afterTab": {
+    "engagements": "[]",
+    "events": "[]"
+  },
+  "destinations": [
+    {
+      "dialog": false,
+      "focus": "MAIN",
+      "label": "Music",
+      "view": "music"
+    },
+    {
+      "dialog": false,
+      "focus": "MAIN",
+      "label": "Games",
+      "view": "games"
+    },
+    {
+      "dialog": false,
+      "focus": "MAIN",
+      "label": "Services",
+      "view": "services"
+    },
+    {
+      "dialog": false,
+      "focus": "MAIN",
+      "label": "Where We Ride",
+      "view": "where-we-ride"
+    },
+    {
+      "dialog": false,
+      "focus": "MAIN",
+      "label": "Streex",
+      "view": "streex"
+    },
+    {
+      "dialog": false,
+      "focus": "MAIN",
+      "label": "Home",
+      "view": "home"
+    }
+  ],
+  "analytics": {
+    "engagements": "[{\"id\":\"9f385f13-602e-457f-ab83-805a56e7c89c\",\"source\":\"idle_resume\"},{\"id\":\"b1b5f755-3370-42dd-b00c-aa67aeca6554\",\"source\":\"test_control\"},{\"id\":\"70963799-a0c6-46f1-88fd-b3134df5e7be\",\"source\":\"test_control\"},{\"id\":\"da3f39e2-7154-42f9-92f5-a7e403bbc5f8\",\"source\":\"test_control\"},{\"id\":\"5565e3cd-3fc5-42e3-850f-eaf61a0c2ad7\",\"source\":\"test_control\"},{\"id\":\"915e7124-8b60-4c6c-bcb3-3376c78d09d0\",\"source\":\"test_control\"},{\"id\":\"259f381a-202a-4a55-96c0-9a8ff61b9129\",\"source\":\"test_control\"}]",
+    "events": "[{\"id\":\"1a622117-dba1-4b60-bf1d-ec57683d84b4\",\"name\":\"idle_entered\"},{\"id\":\"da0b9bfe-0296-4929-bc1f-29f3891b2a8f\",\"name\":\"idle_resumed\"},{\"id\":\"3dd47523-f956-4c13-be1d-c02c54de2fbc\",\"name\":\"logical_rest_entered\"},{\"id\":\"2a2b5ae0-8baa-414b-b250-13ffe2f99f3e\",\"name\":\"logical_rest_resumed\"},{\"id\":\"b67952f1-5a23-446c-89f3-224fa7e25836\",\"name\":\"logical_rest_entered\"},{\"id\":\"ebe29be3-51fe-49c8-a2c0-55b096dbe147\",\"name\":\"logical_rest_resumed\"},{\"id\":\"a08f5ccb-5922-4510-bb3c-6da265c001b0\",\"name\":\"logical_rest_entered\"},{\"id\":\"8eeaad26-2264-4a71-91fa-5285f183c747\",\"name\":\"logical_rest_resumed\"},{\"id\":\"7bd851b3-d19c-4219-b414-b49607f88507\",\"name\":\"logical_rest_entered\"},{\"id\":\"54414331-868f-4e4d-8586-9f11ee2da313\",\"name\":\"logical_rest_resumed\"},{\"id\":\"9d8309a1-63d9-4696-9008-60e535c6802d\",\"name\":\"logical_rest_entered\"},{\"id\":\"74caf7df-9c82-4a81-a6ef-dd4eb233309d\",\"name\":\"logical_rest_resumed\"},{\"id\":\"fd8e188e-ff51-4516-9bae-f89ed7fb960d\",\"name\":\"logical_rest_entered\"},{\"id\":\"598ebc8b-4ef4-4c94-960e-cb2c63bbbb23\",\"name\":\"logical_rest_resumed\"}]"
+  },
+  "wakeOnly": {
+    "dialog": true,
+    "dim": false,
+    "focusRole": "dialog"
+  },
+  "genericTouch": {
+    "focus": "MAIN",
+    "view": "home"
+  }
+}

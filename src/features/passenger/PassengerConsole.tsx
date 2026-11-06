@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -14,6 +15,7 @@ import {
   isSpotifySnapshotUnconfirmed,
 } from "./spotify-session";
 import type { AppConfig } from "@/config";
+import { containPassengerFocus } from "./passenger-focus";
 import {
   getPassengerSeasonalGame,
   getPassengerThemePresentation,
@@ -425,6 +427,14 @@ const copy = {
     idleAction: "Tap anywhere to explore",
     idleDimAction: "Tap to dim",
     idleDimWake: "Tap anywhere to wake the screen",
+    idleKeyboardHint:
+      "Use Tab to choose an action. Press Enter on this screen or Escape to explore Home.",
+    idleOpenMusic: "Tap to open Music",
+    idleExploreAction: "TAP TO EXPLORE",
+    passengerNavigation: "Passenger console",
+    playLabel: "Play",
+    pauseLabel: "Pause",
+    nextLabel: "Next",
     idleNowPlaying: "Now playing on Streex",
     musicRefreshDelayed: "Updating playback… Last known information.",
     musicRefreshPending: "Updating…",
@@ -633,6 +643,14 @@ const copy = {
     idleAction: "Toca cualquier lugar para explorar",
     idleDimAction: "Toca para oscurecer",
     idleDimWake: "Toca en cualquier lugar para activar la pantalla",
+    idleKeyboardHint:
+      "Usa Tab para elegir una acción. Pulsa Enter en esta pantalla o Escape para ir a Inicio.",
+    idleOpenMusic: "Toca para abrir Música",
+    idleExploreAction: "TOCA PARA EXPLORAR",
+    passengerNavigation: "Consola de pasajeros",
+    playLabel: "Reproducir",
+    pauseLabel: "Pausar",
+    nextLabel: "Siguiente",
     idleNowPlaying: "Reproduciendo en Streex",
     musicRefreshDelayed: "Actualizando reproducción… Última información disponible.",
     musicRefreshPending: "Actualizando…",
@@ -660,6 +678,8 @@ export function PassengerConsole(props: PassengerConsoleProps) {
 function PassengerConsoleContent({ config }: PassengerConsoleProps) {
   const [language, setLanguage] = useState<Language>("en");
   const [view, setView] = useState<View>("home");
+  const mainRef = useRef<HTMLElement | null>(null);
+  const previousSurfaceRef = useRef<{ view: View; idle: boolean } | null>(null);
   const [requestedGame, setRequestedGame] = useState<PassengerGame | null>(null);
   const [quickGameIndex, setQuickGameIndex] = useState(0);
 
@@ -754,6 +774,27 @@ function PassengerConsoleContent({ config }: PassengerConsoleProps) {
     inactivitySeconds: idleInactivitySeconds,
     onReset: resetPassengerSession,
   });
+  useLayoutEffect(() => {
+    const previous = previousSurfaceRef.current;
+    if (previous && !idleReset.promptOpen && (previous.idle || previous.view !== view)) {
+      if (previous.view !== view && mainRef.current) mainRef.current.scrollTop = 0;
+      mainRef.current?.focus({ preventScroll: true });
+    }
+    previousSurfaceRef.current = { view, idle: idleReset.promptOpen };
+  }, [view, idleReset.promptOpen]);
+  const screenLabels: Record<View, string> = {
+    home: t.home,
+    music: t.music,
+    games: t.games,
+    "around-you": t.aroundYou,
+    streex: t.streex,
+    "meet-juan": t.meetJuan,
+    services: t.services,
+    contact: t.contact,
+    reviews: t.reviews,
+    tip: t.tip,
+    "where-we-ride": t.whereWeRide,
+  };
   const themePresentation = getPassengerThemePresentation(
     consoleConfig,
     view,
@@ -890,6 +931,7 @@ function PassengerConsoleContent({ config }: PassengerConsoleProps) {
         <HauntedNightAtmosphere surface={view === "music" ? "music" : "home"} />
       ) : null}
       <div
+        inert={idleReset.promptOpen}
         className="passenger-console-shell mx-auto flex h-dvh w-full max-w-[740px] flex-col px-7 pb-4 pt-5"
         data-music-layout={
           consoleConfig.music.mode === "provider" && consoleConfig.music.providerName === "Spotify"
@@ -908,6 +950,9 @@ function PassengerConsoleContent({ config }: PassengerConsoleProps) {
         {hauntedNight && !idleReset.promptOpen ? <HauntedEditionMark language={language} /> : null}
         {gameWeekend && !idleReset.promptOpen ? <GameWeekendMark language={language} /> : null}
         <main
+          ref={mainRef}
+          tabIndex={-1}
+          aria-label={screenLabels[view]}
           key={sessionKey}
           className="mt-3 min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-5 pt-5"
         >
@@ -1140,6 +1185,13 @@ function PassengerIdlePrompt({
   weatherAtmosphereOverride: AtmosphereVariant | null;
 }) {
   const primary = copy[language];
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const wakeButtonRef = useRef<HTMLButtonElement | null>(null);
+  useLayoutEffect(() => {
+    const root = dialogRef.current;
+    if (!root) return;
+    return containPassengerFocus(root, dimmed ? (wakeButtonRef.current ?? root) : root);
+  }, [dimmed]);
   const idleSecondaryRotation = useIdleSecondaryRotation(
     featureRotationSeconds * 1_000,
     gameWeekend,
@@ -1158,17 +1210,39 @@ function PassengerIdlePrompt({
 
   return (
     <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={primary.idleTitle}
+      aria-describedby="passenger-idle-keyboard-hint"
+      tabIndex={-1}
       onClick={onWakeOrResume}
-      className={`passenger-idle-prompt fixed inset-0 z-[100] grid cursor-pointer place-items-center overflow-hidden bg-[#080808]/95 p-8 text-left text-white backdrop-blur-xl focus:outline-none focus:ring-4 focus:ring-inset focus:ring-[#E6CE20]/60${
+      onKeyDown={(event) => {
+        if (
+          event.key === "Escape" ||
+          (event.target === event.currentTarget && (event.key === "Enter" || event.key === " "))
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          onWakeOrResume();
+        }
+      }}
+      className={`passenger-idle-prompt fixed inset-0 z-[100] grid cursor-pointer place-items-center overflow-hidden bg-[#080808]/95 p-8 text-left text-white backdrop-blur-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-[#E6CE20]/60${
         logicalRest ? " passenger-idle-prompt--logical-rest" : ""
       }`}
     >
+      <p id="passenger-idle-keyboard-hint" className="sr-only">
+        {dimmed ? primary.idleDimWake : primary.idleKeyboardHint}
+      </p>
       {gameWeekend ? <GameWeekendAtmosphere surface="idle" paused={dimmed || logicalRest} /> : null}
       {hauntedNight ? (
         <HauntedNightAtmosphere surface="idle" paused={dimmed || logicalRest} />
       ) : null}
       <div className="absolute left-1/2 top-1/2 h-[640px] w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E6CE20]/10 blur-[130px]" />
-      <div className="passenger-idle-content passenger-idle-content--music relative flex w-full max-w-5xl flex-col items-center gap-6">
+      <div
+        inert={dimmed}
+        className="passenger-idle-content passenger-idle-content--music relative flex w-full max-w-5xl flex-col items-center gap-6"
+      >
         <div className="passenger-idle-header flex w-full items-center justify-between gap-5">
           <img
             src={config.logoSrc}
@@ -1231,6 +1305,7 @@ function PassengerIdlePrompt({
       {dimmed && (
         <button
           type="button"
+          ref={wakeButtonRef}
           className="passenger-idle-dim-layer"
           aria-label={primary.idleDimWake}
           onClick={(event) => {
@@ -1627,7 +1702,7 @@ function IdleExplorePanel({
           }}
           className="passenger-idle-explore-cta"
         >
-          <span>TAP TO EXPLORE</span>
+          <span>{t.idleExploreAction}</span>
           <small>
             {language === "es"
               ? "Juegos · Música · Tu viaje · Más"
@@ -1799,7 +1874,7 @@ function IdleSpotifyNowPlaying({
               }}
             >
               <Music2 aria-hidden="true" />
-              Tap to open Music
+              {t.idleOpenMusic}
             </button>
             <button
               type="button"
@@ -1848,7 +1923,7 @@ function IdleSpotifyNowPlaying({
             <button
               type="button"
               disabled={busy || !playback?.hasActiveDevice}
-              aria-label={playback?.isPlaying ? "Pause" : "Play"}
+              aria-label={playback?.isPlaying ? t.pauseLabel : t.playLabel}
               onClick={(event) => {
                 event.stopPropagation();
                 void control(playback?.isPlaying ? "pause" : "play");
@@ -1863,7 +1938,7 @@ function IdleSpotifyNowPlaying({
             <button
               type="button"
               disabled={busy || !playback?.hasActiveDevice}
-              aria-label="Next"
+              aria-label={t.nextLabel}
               onClick={(event) => {
                 event.stopPropagation();
                 void control("next");
@@ -2132,6 +2207,8 @@ function HomeView({
             <button
               type="button"
               onClick={() => setWeatherOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={weatherOpen}
               aria-label={`${t.weather}: ${weatherCity}. ${t.weatherHint}`}
               className="passenger-home-weather relative isolate min-w-[208px] overflow-hidden rounded-2xl border border-white/10 bg-black/25 px-5 py-4 text-left backdrop-blur transition hover:border-[#E6CE20]/40 hover:bg-black/35 focus:outline-none focus:ring-2 focus:ring-[#E6CE20]/60"
             >
@@ -5065,7 +5142,7 @@ function ConsoleNavigation({
   ];
   return (
     <nav
-      aria-label="Passenger console"
+      aria-label={t.passengerNavigation}
       className="z-20 mt-4 flex shrink-0 gap-1 rounded-[28px] border border-white/10 bg-[#161614]/95 p-2 backdrop-blur"
     >
       {items.map((item) => (
@@ -5073,6 +5150,7 @@ function ConsoleNavigation({
           key={item.id}
           type="button"
           onClick={() => onNavigate(item.id)}
+          aria-current={active === item.id ? "page" : undefined}
           className={`flex min-h-[62px] flex-1 flex-col items-center justify-center gap-1 rounded-[20px] px-2 text-xs font-semibold transition ${active === item.id ? "bg-[#E6CE20] text-black" : "text-white/65 hover:bg-white/[0.05] hover:text-white"}`}
         >
           {item.icon}

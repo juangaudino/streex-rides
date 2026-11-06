@@ -37,11 +37,26 @@ export function readLocalConfig() {
     passengerConsole: {
       ...config.passengerConsole,
       aroundYou: { ...config.passengerConsole.aroundYou, enabled: false },
+      idleReset: {
+        ...config.passengerConsole.idleReset,
+        defaultLanguage:
+          new URLSearchParams(window.location.search).get("language") === "es"
+            ? "es"
+            : config.passengerConsole.idleReset.defaultLanguage,
+      },
     },
   };
 }
 
 export function prepareLocalFixture(params: URLSearchParams) {
+  if (params.get("long-track") === "1") {
+    currentTrack = {
+      ...track,
+      title: "A Very Long Song Title With Many Words for a Passenger to Read",
+      artist: "An Artist Name Long Enough to Test the Compact Display",
+      album: "An Album Name Long Enough to Test the Compact Display",
+    };
+  }
   if (params.get("music-validation") === "1") {
     const toggle = document.createElement("button");
     toggle.textContent = "Simulate Spotify failure";
@@ -185,6 +200,33 @@ export async function callLocalFixture(name: string, input?: { data?: Record<str
     const events = log.flatMap((call) =>
       call.name === name ? ((call.data?.events as FixtureEvent[] | undefined) ?? []) : [],
     );
+    document.documentElement.dataset.qaIdleEvents = JSON.stringify([
+      ...new Map(
+        events
+          .filter((event) =>
+            [
+              "idle_entered",
+              "idle_resumed",
+              "logical_rest_entered",
+              "logical_rest_resumed",
+            ].includes(event.name),
+          )
+          .map((event) => [event.id, { id: event.id, name: event.name }]),
+      ).values(),
+    ]);
+    const engagements = log.flatMap((call) =>
+      call.name === name
+        ? ((call.data?.engagements as { id: string; entrySource: string }[] | undefined) ?? [])
+        : [],
+    );
+    document.documentElement.dataset.qaEngagements = JSON.stringify([
+      ...new Map(
+        engagements.map((engagement) => [
+          engagement.id,
+          { id: engagement.id, source: engagement.entrySource },
+        ]),
+      ).values(),
+    ]);
     document.documentElement.dataset.qaGameEvents = JSON.stringify(
       events
         .filter((event) => event.metadata?.game === "midnight-hunt")
